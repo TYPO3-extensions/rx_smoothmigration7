@@ -1,0 +1,38 @@
+<?php
+
+if (!defined('TYPO3_MODE')) {
+	die ('Access denied.');
+}
+
+$checkArray = array(
+	'Tx_Smoothmigration_Checks_Core_CallToDeprecatedStaticMethods_Definition',
+	'Tx_Smoothmigration_Checks_Core_CallToDeprecatedViewHelpers_Definition',
+	'Tx_Smoothmigration_Checks_Core_Mysql_Definition',
+	'Tx_Smoothmigration_Checks_Core_Namespace_Definition',
+	'Tx_Smoothmigration_Checks_Core_RemovedConstants_Definition',
+	'Tx_Smoothmigration_Checks_Core_RequireOnceInExtensions_Definition',
+	'Tx_Smoothmigration_Checks_Core_Xclasses_Definition',
+	'Tx_Smoothmigration_Checks_Core_MissingAddPluginParameter_Definition',
+	'Tx_Smoothmigration_Checks_Dam_CallToDamClasses_Definition',
+	'Tx_Smoothmigration_Checks_Database_Utf8_Definition',
+	'Tx_Smoothmigration_Checks_Extension_IncompatibleWithLts_Definition',
+	'Tx_Smoothmigration_Checks_Extension_Obsolete_Definition',
+);
+Tx_Smoothmigration_Service_Check_Registry::getInstance()->registerChecks($checkArray);
+
+$migrationArray = array(
+	'Tx_Smoothmigration_Migrations_Core_CallToDeprecatedStaticMethods_Definition',
+	'Tx_Smoothmigration_Migrations_Core_Namespace_Definition',
+	'Tx_Smoothmigration_Migrations_Core_RequireOnceInExtensions_Definition',
+	'Tx_Smoothmigration_Migrations_Core_MissingAddPluginParameter_Definition',
+	// 'Tx_Smoothmigration_Migrations_Core_Xclasses_Definition', FIXME Does not work for me.
+	'Tx_Smoothmigration_Migrations_Database_CreateMissingTablesAndFields_Definition',
+	'Tx_Smoothmigration_Migrations_Database_Utf8_Definition',
+);
+
+Tx_Smoothmigration_Service_Migration_Registry::getInstance()->registerMigrations($migrationArray);
+
+$TYPO3_CONF_VARS['SC_OPTIONS']['GLOBAL']['cliKeys']['smoothmigration'] = array(
+	t3lib_extMgm::extPath('smoothmigration', 'Classes/Cli/class.smoothmigration_cli.php'),
+	'_CLI_smoothmigration'
+);
