@@ -21,22 +21,23 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+namespace Reelworx\RxSmoothmigration7\Migrations\CallToDeprecatedStaticMethods;
+
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\MigrationProcessor;
+use Reelworx\RxSmoothmigration7\Migrations\AbstractMigrationDefinition;
 
 /**
- * Class Tx_Smoothmigration_Migrations_Core_CallToDeprecatedStaticMethods_Definition
+ * Class Reelworx\RxSmoothmigration7\Migrations\CallToDeprecatedStaticMethods\Definition
  *
  * @author Michiel Roos
  */
-
-include_once t3lib_extMgm::extPath('smoothmigration') . 'Classes/Migrations/AbstractMigrationProcessor.php';
-
-class Tx_Smoothmigration_Migrations_Core_CallToDeprecatedStaticMethods_Definition extends Tx_Smoothmigration_Migrations_AbstractMigrationDefinition {
+class Definition extends AbstractMigrationDefinition {
 
 	/**
-	 * @return Tx_Smoothmigration_Domain_Interface_MigrationProcessor
+	 * @return MigrationProcessor
 	 */
 	public function getProcessor() {
-		return $this->objectManager->get('Tx_Smoothmigration_Migrations_Core_CallToDeprecatedStaticMethods_Processor', $this);
+		return $this->objectManager->get('Reelworx\\RxSmoothmigration7\\Migrations\\CallToDeprecatedStaticMethods\\Processor', $this);
 	}
 
 	/**
@@ -66,4 +67,4 @@ class Tx_Smoothmigration_Migrations_Core_CallToDeprecatedStaticMethods_Definitio
 
 }
 
-?>
+

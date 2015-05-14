@@ -24,15 +24,17 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+namespace Reelworx\RxSmoothmigration7\Domain\Model\IssueLocation;
+
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\IssueLocation;
 
 /**
- * Class Tx_Smoothmigration_Domain_Interface_CheckProcessor
+ * Class Reelworx\RxSmoothmigration7\Domain\Interfaces\CheckProcessor
  *
  * @author Steffen Ritter
  */
-abstract class Tx_Smoothmigration_Domain_Model_IssueLocation_PhysicalLocation implements Tx_Smoothmigration_Domain_Interface_IssueLocation {
+abstract class PhysicalLocation implements IssueLocation {
 
 
 }
 
-?>

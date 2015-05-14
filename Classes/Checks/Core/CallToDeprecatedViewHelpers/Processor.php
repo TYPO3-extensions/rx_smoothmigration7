@@ -24,13 +24,18 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+namespace Reelworx\RxSmoothmigration7\Checks\Core\CallToDeprecatedViewHelpers;
+
+use Reelworx\RxSmoothmigration7\Checks\AbstractCheckProcessor;
+use Reelworx\RxSmoothmigration7\Domain\Model\Issue;
+use Reelworx\RxSmoothmigration7\Utility\FileLocatorUtility;
 
 /**
- * Class Tx_Smoothmigration_Checks_Core_CallToDeprecatedViewHelpers_Definition
+ * Class Reelworx\RxSmoothmigration7\Checks\Core\CallToDeprecatedViewHelpers\Definition
  *
  * @author Peter Beernink
  */
-class Tx_Smoothmigration_Checks_Core_CallToDeprecatedViewHelpers_Processor extends Tx_Smoothmigration_Checks_AbstractCheckProcessor {
+class Processor extends AbstractCheckProcessor {
 
 	/**
 	 * Array of all deprecated viewHelpers
@@ -51,19 +56,19 @@ class Tx_Smoothmigration_Checks_Core_CallToDeprecatedViewHelpers_Processor exten
 	 */
 	public function execute() {
 		if ($this->getExtensionKey()) {
-			$locations = Tx_Smoothmigration_Utility_FileLocatorUtility::searchInExtension(
+			$locations = FileLocatorUtility::searchInExtension(
 				$this->getExtensionKey(),
 				'.*\.(html)$',
 				$this->generateRegularExpression()
 			);
 		} else {
-			$locations = Tx_Smoothmigration_Utility_FileLocatorUtility::searchInExtensions(
+			$locations = FileLocatorUtility::searchInExtensions(
 				'.*\.(html)$',
 				$this->generateRegularExpression()
 			);
 		}
 		foreach ($locations as $location) {
-			$this->issues[] = new Tx_Smoothmigration_Domain_Model_Issue($this->parentCheck->getIdentifier(), $location);
+			$this->issues[] = new Issue($this->parentCheck->getIdentifier(), $location);
 		}
 	}
 
@@ -80,4 +85,3 @@ class Tx_Smoothmigration_Checks_Core_CallToDeprecatedViewHelpers_Processor exten
 
 }
 
-?>

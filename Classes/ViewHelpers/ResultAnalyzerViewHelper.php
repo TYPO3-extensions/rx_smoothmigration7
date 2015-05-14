@@ -1,4 +1,9 @@
 <?php
+namespace Reelworx\RxSmoothmigration7\ViewHelpers;
+
+use Reelworx\RxSmoothmigration7\Service\Check\Registry;
+use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractConditionViewHelper;
+use Reelworx\RxSmoothmigration7\Domain\Model\Issue;
 
 /***************************************************************
  *  Copyright notice
@@ -25,26 +30,18 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
-class Tx_Smoothmigration_ViewHelpers_ResultAnalyzerViewHelper extends Tx_Fluid_Core_ViewHelper_AbstractViewHelper {
 
-
-	/**
-	 * Initialize arguments
-	 *
-	 * @return void
-	 */
-	public function initializeArguments() {
-		parent::initializeArguments();
-	}
+class ResultAnalyzerViewHelper extends AbstractConditionViewHelper {
 
 	/**
-	 * @param Tx_Smoothmigration_Domain_Model_Issue $issue
+	 * @param Issue $issue
 	 *
 	 * @return mixed
 	 */
 	public function render($issue) {
-		$check = Tx_Smoothmigration_Service_Check_Registry::getInstance()->getActiveCheckByIdentifier($issue->getInspection());
+		$check = Registry::getInstance()->getActiveCheckByIdentifier($issue->getInspection());
 
+		$content = '';
 		if ($check !== NULL) {
 			$this->templateVariableContainer->add('explanation', $check->getResultAnalyzer()->getExplanation($issue));
 			$this->templateVariableContainer->add('solution', $check->getResultAnalyzer()->getSolution($issue));

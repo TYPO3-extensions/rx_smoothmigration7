@@ -21,13 +21,18 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+namespace Reelworx\RxSmoothmigration7\Checks;
+
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\Check;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\CheckProcessor;
+use Reelworx\RxSmoothmigration7\Domain\Model\Issue;
 
 /**
- * Class Tx_Smoothmigration_Checks_AbstractCheckProcessor
+ * Class Reelworx\RxSmoothmigration7\Checks\AbstractCheckProcessor
  *
  * @author Michiel Roos
  */
-abstract class Tx_Smoothmigration_Checks_AbstractCheckProcessor implements Tx_Smoothmigration_Domain_Interface_CheckProcessor {
+abstract class AbstractCheckProcessor implements CheckProcessor {
 
 	/**
 	 * @var string
@@ -35,24 +40,24 @@ abstract class Tx_Smoothmigration_Checks_AbstractCheckProcessor implements Tx_Sm
 	private $extensionKey = NULL;
 
 	/**
-	 * @var Tx_Smoothmigration_Domain_Model_Issue[]
+	 * @var Issue[]
 	 */
 	protected $issues = array();
 
 	/**
-	 * @var Tx_Smoothmigration_Checks_Core_CallToDeprecatedStaticMethods_Definition
+	 * @var \Reelworx\RxSmoothmigration7\Checks\Core\CallToDeprecatedMethods\Definition
 	 */
 	protected $parentCheck;
 
 	/**
-	 * @param Tx_Smoothmigration_Domain_Interface_Check $check
+	 * @param Check $check
 	 */
-	public function __construct(Tx_Smoothmigration_Domain_Interface_Check $check) {
+	public function __construct(Check $check) {
 		$this->parentCheck = $check;
 	}
 
 	/**
-	 * @return Tx_Smoothmigration_Domain_Model_Issue[]
+	 * @return Issue[]
 	 */
 	public function getIssues() {
 		return $this->issues;

@@ -21,6 +21,22 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  */
 
+namespace Reelworx\RxSmoothmigration7\Controller;
+
+use Reelworx\RxSmoothmigration7\Cli\CommandManager;
+use Reelworx\RxSmoothmigration7\Service\Check\Registry;
+use Reelworx\RxSmoothmigration7\Service\MessageService;
+use Reelworx\RxSmoothmigration7\Utility\ExtensionUtility;
+use Reelworx\RxSmoothmigration7\Checks\AbstractCheckDefinition;
+use Reelworx\RxSmoothmigration7\Checks\AbstractCheckProcessor;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\Check;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\Migration;
+use Reelworx\RxSmoothmigration7\Domain\Model\Issue;
+use Reelworx\RxSmoothmigration7\Domain\Repository\IssueRepository;
+use Reelworx\RxSmoothmigration7\Migrations\AbstractMigrationProcessor;
+use TYPO3\CMS\Extbase\Mvc\Cli\Command;
+use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
+use TYPO3\CMS\Extbase\Mvc\Exception\CommandException;
 
 /**
  * Command Controller to execute smoothmigration checks
@@ -28,7 +44,7 @@
  * @package smoothmigration
  * @subpackage Controller
  */
-class Tx_Smoothmigration_Controller_SmoothmigrationCommandController extends Tx_Extbase_MVC_Controller_CommandController {
+class SmoothmigrationCommandController extends CommandController {
 
 	/**
 	 * @var array
@@ -36,12 +52,12 @@ class Tx_Smoothmigration_Controller_SmoothmigrationCommandController extends Tx_
 	protected $autoCompleteValues = array();
 
 	/**
-	 * @var array
+	 * @var \Reelworx\RxSmoothmigration7\Domain\Interfaces\Description[][]
 	 */
 	protected $availableActions = array();
 
 	/**
-	 * @var array<\TYPO3\CMS\Extbase\Mvc\Cli\Command>
+	 * @var Command[][]
 	 */
 	protected $availableCommands = NULL;
 
@@ -53,38 +69,38 @@ class Tx_Smoothmigration_Controller_SmoothmigrationCommandController extends Tx_
 	protected $isInInteractiveMode = FALSE;
 
 	/**
-	 * True if we are running the checkAll comman
+	 * True if we are running the checkAll command
 	 *
 	 * @var bool
 	 */
 	protected $isCheckingAll = FALSE;
 
 	/**
-	 * @var Tx_Smoothmigration_Cli_CommandManager
+	 * @var CommandManager
 	 */
 	protected $commandManager;
 
 	/**
-	 * @param Tx_Smoothmigration_Cli_CommandManager $commandManager
+	 * @param CommandManager $commandManager
 	 *
 	 * @return void
 	 */
-	public function injectCommandManager(Tx_Smoothmigration_Cli_CommandManager $commandManager) {
+	public function injectCommandManager(CommandManager $commandManager) {
 		$this->commandManager = $commandManager;
 	}
 
 	/**
-	 * @var Tx_Smoothmigration_Service_MessageService
+	 * @var MessageService
 	 */
 	protected $messageBus;
 
 	/**
 	 * inject the messageBus
 	 *
-	 * @param Tx_Smoothmigration_Service_MessageService $messageBus
+	 * @param MessageService $messageBus
 	 * @return void
 	 */
-	public function injectMessageBus(Tx_Smoothmigration_Service_MessageService $messageBus) {
+	public function injectMessageBus(MessageService $messageBus) {
 		$this->messageBus = $messageBus;
 	}
 
@@ -103,35 +119,32 @@ class Tx_Smoothmigration_Controller_SmoothmigrationCommandController extends Tx_
 			$this->displayActionIndex();
 		} else {
 			try {
-				/** @var Tx_Smoothmigration_Domain_Interface_Check $check */
-				$check = $this->commandManager->getCommandByTypeAndIdentifier('Check', $commandIdentifier);
+				/** @var Check $check */
+				$check = $this->commandManager->getCommandByTypeAndIdentifier('Reelworx\\RxSmoothmigration7\\Domain\\Interfaces\\Check', $commandIdentifier);
 				if ($check) {
 					$forExtension = (trim($extensionKey)) ? ' in extension: ' . $extensionKey : '';
 					$this->messageBus->headerMessage('Check: \'' . $check->getTitle() . '\'' . $forExtension);
-					/** @var Tx_Smoothmigration_Checks_AbstractCheckProcessor $processor */
+					/** @var AbstractCheckProcessor $processor */
 					$processor = $check->getProcessor();
 					if (trim($extensionKey)) {
 						$processor->setExtensionKey($extensionKey);
 					}
 					$processor->execute();
-					$issueRepository = $this->objectManager->get('Tx_Smoothmigration_Domain_Repository_IssueRepository');
+					$issueRepository = $this->objectManager->get('Reelworx\\RxSmoothmigration7\\Domain\\Repository\\IssueRepository');
 					foreach ($processor->getIssues() as $issue) {
 						$issueRepository->add($issue);
 					}
 
-					/** @var Tx_Extbase_Persistence_Manager $persistenceManger */
-					$persistenceManger = $this->objectManager->get('Tx_Extbase_Persistence_Manager');
-					$persistenceManger->registerRepositoryClassName('Tx_Smoothmigration_Domain_Repository_IssueRepository');
+					$persistenceManger = $this->objectManager->get('TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager');
+					$persistenceManger->registerRepositoryClassName('Reelworx\\RxSmoothmigration7\\Domain\\Repository\\IssueRepository');
 					$persistenceManger->persistAll();
 					$this->issueReport(count($processor->getIssues()), $extensionKey);
 					if ($this->isInInteractiveMode && !$this->isCheckingAll) {
 						$this->checkCommand();
 					}
 				}
-			} catch (Tx_Extbase_MVC_Exception_Command $exception) {
+			} catch (CommandException $exception) {
 				$this->messageBus->message($exception->getMessage());
-
-				return;
 			}
 		}
 	}
@@ -146,7 +159,7 @@ class Tx_Smoothmigration_Controller_SmoothmigrationCommandController extends Tx_
 	public function checkAllCommand($extensionKey = '') {
 		$this->isCheckingAll = TRUE;
 		$availableCommands = $this->commandManager->getAvailableCommands();
-		/** @var Tx_Smoothmigration_Checks_AbstractCheckDefinition $command */
+		/** @var AbstractCheckDefinition $command */
 		foreach ($availableCommands['check'] as $command) {
 			$commandIdentifier = $command->getIdentifier();
 			$this->checkCommand($commandIdentifier, $extensionKey);
@@ -203,7 +216,7 @@ class Tx_Smoothmigration_Controller_SmoothmigrationCommandController extends Tx_
 		$this->messageBus->setCompletions(array(
 			'actions' => $this->autoCompleteValues['actions'],
 			'commands' => $this->autoCompleteValues['commands'],
-			'extensions' => Tx_Smoothmigration_Utility_ExtensionUtility::getLoadedExtensionsFiltered()
+			'extensions' => ExtensionUtility::getLoadedExtensionsFiltered()
 		));
 		$this->messageBus->usage();
 		$response = $this->messageBus->prompt();
@@ -256,12 +269,12 @@ class Tx_Smoothmigration_Controller_SmoothmigrationCommandController extends Tx_
 			$this->displayActionIndex('Migration');
 		} else {
 			try {
-				/** @var Tx_Smoothmigration_Domain_Interface_Migration $migration */
-				$migration = $this->commandManager->getCommandByTypeAndIdentifier('Migration', $commandIdentifier);
+				/** @var Migration $migration */
+				$migration = $this->commandManager->getCommandByTypeAndIdentifier('Reelworx\\RxSmoothmigration7\\Domain\\Interfaces\\Migration', $commandIdentifier);
 				if ($migration) {
 					$forExtension = (trim($extensionKey)) ? ' for extension: ' . $extensionKey : '';
 					$this->messageBus->headerMessage('Migration: \'' . $migration->getTitle() . '\'' . $forExtension);
-					/** @var Tx_Smoothmigration_Migrations_AbstractMigrationProcessor $processor */
+					/** @var \Reelworx\RxSmoothmigration7\Migrations\AbstractMigrationProcessor $processor */
 					$processor = $migration->getProcessor();
 					if (trim($extensionKey)) {
 						$processor->setExtensionKey($extensionKey);
@@ -272,14 +285,11 @@ class Tx_Smoothmigration_Controller_SmoothmigrationCommandController extends Tx_
 					$processor->setMessageService($this->messageBus);
 					$processor->execute();
 
-					/** @var Tx_Extbase_Persistence_Manager $persistenceManger */
-					$persistenceManger = $this->objectManager->get('Tx_Extbase_Persistence_Manager');
+					$persistenceManger = $this->objectManager->get('TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager');
 					$persistenceManger->persistAll();
 				}
-			} catch (Tx_Extbase_MVC_Exception_Command $exception) {
+			} catch (CommandException $exception) {
 				$this->messageBus->message($exception->getMessage());
-
-				return;
 			}
 		}
 	}
@@ -294,9 +304,8 @@ class Tx_Smoothmigration_Controller_SmoothmigrationCommandController extends Tx_
 	 * @return void
 	 */
 	public function reportCommand($extensionKey = '') {
-		$registry = Tx_Smoothmigration_Service_Check_Registry::getInstance();
-		/** @var Tx_Smoothmigration_Domain_Repository_IssueRepository $issueRepository */
-		$issueRepository = $this->objectManager->get('Tx_Smoothmigration_Domain_Repository_IssueRepository');
+		$registry = Registry::getInstance();
+		$issueRepository = $this->objectManager->get('Reelworx\\RxSmoothmigration7\\Domain\\Repository\\IssueRepository');
 		if ($extensionKey) {
 			$issuesWithInspections = $issueRepository->findByExtensionGroupedByInspection($extensionKey);
 		} else {
@@ -307,18 +316,18 @@ class Tx_Smoothmigration_Controller_SmoothmigrationCommandController extends Tx_
 				$count = 0;
 				$notMigratedCount = 0;
 				foreach ($inspections as $issues) {
-					/** @var Tx_Smoothmigration_Domain_Model_Issue $singleIssue */
+					/** @var Issue $singleIssue */
 					foreach ($issues as $singleIssue) {
 						if ($count == 0) {
-							// Render Extension Key
+							// Render extension Key
 							$this->messageBus->headerMessage('Extension : ' . $singleIssue->getExtension(), 'info');
 						}
 						$check = $registry->getActiveCheckByIdentifier($singleIssue->getInspection());
 						$migrationStatus = $singleIssue->getMigrationStatus();
-						Tx_Smoothmigration_Domain_Interface_Migration::SUCCESS;
+						Migration::SUCCESS;
 						if ($check) {
 							switch ($migrationStatus) {
-								case Tx_Smoothmigration_Domain_Interface_Migration::SUCCESS:
+								case Migration::SUCCESS:
 									$this->messageBus->successMessage($check->getResultAnalyzer()->getSolution($singleIssue));
 									break;
 								default:
@@ -382,7 +391,7 @@ class Tx_Smoothmigration_Controller_SmoothmigrationCommandController extends Tx_
 		)));
 		$this->messageBus->horizontalLine();
 
-		/** @var Tx_Smoothmigration_Checks_AbstractCheckDefinition $command */
+		/** @var \Reelworx\RxSmoothmigration7\Checks\AbstractCheckDefinition $command */
 		$counter = 1;
 		foreach ($this->availableActions[$type] as $command) {
 			$this->autoCompleteValues['actions'][] = $command->getIdentifier();
@@ -399,7 +408,7 @@ class Tx_Smoothmigration_Controller_SmoothmigrationCommandController extends Tx_
 		if ($this->isInInteractiveMode) {
 			$this->messageBus->setCompletions(array(
 				'actions' => $this->autoCompleteValues['actions'],
-				'extensions' => Tx_Smoothmigration_Utility_ExtensionUtility::getLoadedExtensionsFiltered()
+				'extensions' => ExtensionUtility::getLoadedExtensionsFiltered()
 			));
 			$actions = $this->autoCompleteValues['actions'][$type];
 			$this->messageBus->usage();
@@ -467,14 +476,14 @@ class Tx_Smoothmigration_Controller_SmoothmigrationCommandController extends Tx_
 		$length = 0;
 
 		if ($colorizedLength) {
-			/** @var Tx_Smoothmigration_Checks_AbstractCheckDefinition $command */
+			/** @var \Reelworx\RxSmoothmigration7\Checks\AbstractCheckDefinition $command */
 			foreach ($commands as $command) {
 				if ($length < strlen($this->messageBus->successString($command->getIdentifier()))) {
 					$length = strlen($this->messageBus->successString($command->getIdentifier()));
 				}
 			}
 		} else {
-			/** @var Tx_Smoothmigration_Checks_AbstractCheckDefinition $command */
+			/** @var AbstractCheckDefinition $command */
 			foreach ($commands as $command) {
 				if ($length < strlen($command->getIdentifier())) {
 					$length = strlen($command->getIdentifier());
@@ -507,7 +516,7 @@ class Tx_Smoothmigration_Controller_SmoothmigrationCommandController extends Tx_
 	}
 
 	/**
-	 * @return Tx_Smoothmigration_Service_MessageService
+	 * @return MessageService
 	 */
 	public function getMessageBus() {
 		return $this->messageBus;

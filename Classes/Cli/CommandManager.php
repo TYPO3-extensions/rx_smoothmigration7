@@ -21,34 +21,39 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  */
 
+namespace Reelworx\RxSmoothmigration7\Cli;
+
+use Reelworx\RxSmoothmigration7\Service;
+use TYPO3\CMS\Extbase\Mvc\Cli\Command;
+use TYPO3\CMS\Extbase\Mvc\Exception\AmbiguousCommandIdentifierException;
+use TYPO3\CMS\Extbase\Mvc\Exception\NoSuchCommandException;
+
 /**
  * A helper for CLI commands
  *
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public
  *    License, version 3 or later
  */
-class Tx_Smoothmigration_Cli_CommandManager extends Tx_Extbase_MVC_CLI_CommandManager {
+class CommandManager extends \TYPO3\CMS\Extbase\Mvc\Cli\CommandManager {
 
 	/**
 	 * Returns an array of all commands
 	 *
-	 * @return array<Tx_Extbase_MVC_CLI_Command>
+	 * @return Command[][]
 	 * @api
 	 */
 	public function getAvailableCommands() {
 		if ($this->availableCommands === NULL) {
 			$this->availableCommands = array();
 
-			/** @var Tx_Smoothmigration_Service_Check_Registry $checkRegistry */
-			$checkRegistry = $this->objectManager->get('Tx_Smoothmigration_Service_Check_Registry');
+			$checkRegistry = $this->objectManager->get('Reelworx\\RxSmoothmigration7\\Service\\Check\\Registry');
 			$checks = $checkRegistry->getActiveChecks();
 			foreach ($checks as $command) {
 				$commandIdentifier = $command->getIdentifier();
 				$this->availableCommands['check'][$commandIdentifier] = $command;
 			}
 
-			/** @var Tx_Smoothmigration_Service_Migration_Registry $migrationRegistry */
-			$migrationRegistry = $this->objectManager->get('Tx_Smoothmigration_Service_Migration_Registry');
+			$migrationRegistry = $this->objectManager->get('Reelworx\\RxSmoothmigration7\\Service\\Migration\\Registry');
 			$migrations = $migrationRegistry->getActiveMigrations();
 			foreach ($migrations as $command) {
 				$commandIdentifier = $command->getIdentifier();
@@ -67,10 +72,9 @@ class Tx_Smoothmigration_Cli_CommandManager extends Tx_Extbase_MVC_CLI_CommandMa
 	 * @param string $type The type of command
 	 * @param string $commandIdentifier command identifier in the format
 	 *    foo:bar:baz
-	 *
-	 * @throws Tx_Extbase_MVC_Exception_AmbiguousCommandIdentifier
-	 * @throws Tx_Extbase_MVC_Exception_NoSuchCommand
-	 * @return Tx_Extbase_MVC_CLI_Command
+	 * @return Command
+	 * @throws AmbiguousCommandIdentifierException
+	 * @throws NoSuchCommandException
 	 * @api
 	 */
 	public function getCommandByTypeAndIdentifier($type, $commandIdentifier) {
@@ -92,10 +96,10 @@ class Tx_Smoothmigration_Cli_CommandManager extends Tx_Extbase_MVC_CLI_CommandMa
 			}
 		}
 		if (count($matchedCommands) === 0) {
-			throw new Tx_Extbase_MVC_Exception_NoSuchCommand('No command could be found that matches the command identifier "' . $commandIdentifier . '".', 1310556663);
+			throw new NoSuchCommandException('No command could be found that matches the command identifier "' . $commandIdentifier . '".', 1310556663);
 		}
 		if (count($matchedCommands) > 1) {
-			throw new Tx_Extbase_MVC_Exception_AmbiguousCommandIdentifier('More than one command matches the command identifier "' . $commandIdentifier . '"', 1310557169, NULL, $matchedCommands);
+			throw new AmbiguousCommandIdentifierException('More than one command matches the command identifier "' . $commandIdentifier . '"', 1310557169, NULL, $matchedCommands);
 		}
 
 		return current($matchedCommands);
@@ -106,7 +110,7 @@ class Tx_Smoothmigration_Cli_CommandManager extends Tx_Extbase_MVC_CLI_CommandMa
 	 * of the specified command. This is the case, if the identifiers are the
 	 * same or if at least the last two command parts match (case sensitive).
 	 *
-	 * @param Tx_Extbase_MVC_CLI_Command $command
+	 * @param Command $command
 	 * @param string $commandIdentifier command identifier in the format
 	 *    foo:bar:baz (all lower case)
 	 *
@@ -114,7 +118,7 @@ class Tx_Smoothmigration_Cli_CommandManager extends Tx_Extbase_MVC_CLI_CommandMa
 	 *    commands identifier
 	 * @author Bastian Waidelich <bastian@typo3.org>
 	 */
-	protected function commandMatchesIdentifier(Tx_Extbase_MVC_CLI_Command $command, $commandIdentifier) {
+	protected function commandMatchesIdentifier(Command $command, $commandIdentifier) {
 		$commandIdentifierParts = explode(':', $command->getCommandIdentifier());
 		$searchedCommandIdentifierParts = explode(':', $commandIdentifier);
 		$extensionKey = array_shift($commandIdentifierParts);

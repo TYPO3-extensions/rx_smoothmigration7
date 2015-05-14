@@ -24,13 +24,14 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+namespace Reelworx\RxSmoothmigration7\Domain\Model\IssueLocation;
 
 /**
- * Class Tx_Smoothmigration_Domain_Interface_CheckProcessor
+ * Class Reelworx\RxSmoothmigration7\Domain\Interfaces\CheckProcessor
  *
  * @author Steffen Ritter
  */
-class Tx_Smoothmigration_Domain_Model_IssueLocation_Database extends Tx_Smoothmigration_Domain_Model_IssueLocation_PhysicalLocation {
+class Database extends PhysicalLocation {
 
 	/**
 	 * @var string
@@ -148,4 +149,3 @@ class Tx_Smoothmigration_Domain_Model_IssueLocation_Database extends Tx_Smoothmi
 
 }
 
-?>

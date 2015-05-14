@@ -22,13 +22,21 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+namespace Reelworx\RxSmoothmigration7\Service\Migration;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\Migration;
+use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+
 /**
- * Class Tx_Smoothmigration_Service_Migration_Registry
+ * Class Registry
  *
  * @author Peter Beernink
  */
-class Tx_Smoothmigration_Service_Migration_Registry implements t3lib_Singleton {
+class Registry implements SingletonInterface {
 
+	/**
+	 * @var array
+	 */
 	protected $registeredMigrations = array();
 
 	/**
@@ -44,7 +52,7 @@ class Tx_Smoothmigration_Service_Migration_Registry implements t3lib_Singleton {
 	 * @return void
 	 */
 	public function registerMigration($className) {
-		if (class_exists($className) && in_array('Tx_Smoothmigration_Domain_Interface_Migration', class_implements($className))) {
+		if (class_exists($className) && in_array('Reelworx\\RxSmoothmigration7\\Domain\\Interfaces\\Migration', class_implements($className))) {
 			$this->registeredMigrations[] = $className;
 		}
 	}
@@ -63,17 +71,16 @@ class Tx_Smoothmigration_Service_Migration_Registry implements t3lib_Singleton {
 	/**
 	 * Returns Instances of all registered migrations which apply to this instance.
 	 *
-	 * @return Tx_Smoothmigration_Domain_Interface_Migration[]
+	 * @return Migration[]
 	 */
 	public function getActiveMigrations() {
 		if (!is_array($this->activeMigrations)) {
 			$this->activeMigrations = array();
-			/** @var Tx_Smoothmigration_Service_RequirementsAnalyzer $requirementsAnalyzer */
-			$requirementsAnalyzer = t3lib_div::makeInstance('Tx_Smoothmigration_Service_RequirementsAnalyzer');
+			$requirementsAnalyzer = GeneralUtility::makeInstance('Reelworx\\RxSmoothmigration7\\Service\\RequirementsAnalyzer');
 
 			foreach ($this->registeredMigrations as $className) {
-				/** @var Tx_Smoothmigration_Domain_Interface_Migration $check */
-				$migration = t3lib_div::makeInstance($className);
+				/** @var Migration $check */
+				$migration = GeneralUtility::makeInstance($className);
 				if ($requirementsAnalyzer->isActive($migration)) {
 					$this->activeMigrations[] = $migration;
 				}
@@ -85,7 +92,7 @@ class Tx_Smoothmigration_Service_Migration_Registry implements t3lib_Singleton {
 	/**
 	 * @param $searchedIdentifier
 	 *
-	 * @return null|Tx_Smoothmigration_Domain_Interface_Migration
+	 * @return null|\Reelworx\RxSmoothmigration7\Domain\Interfaces\Migration
 	 */
 	public function getActiveMigrationByIdentifier($searchedIdentifier) {
 		$migrations = $this->getActiveMigrations();
@@ -100,7 +107,7 @@ class Tx_Smoothmigration_Service_Migration_Registry implements t3lib_Singleton {
 	/**
 	 * @param $cliKey
 	 *
-	 * @return null|Tx_Smoothmigration_Domain_Interface_Migration
+	 * @return null|\Reelworx\RxSmoothmigration7\Domain\Interfaces\Migration
 	 */
 	public function getActiveMigrationByCliKey($cliKey) {
 		$migrations = $this->getActiveMigrations();
@@ -113,11 +120,10 @@ class Tx_Smoothmigration_Service_Migration_Registry implements t3lib_Singleton {
 	}
 
 	/**
-	 * @return Tx_Smoothmigration_Service_Check_Registry
+	 * @return Registry
 	 */
 	public static function getInstance() {
-		return t3lib_div::makeInstance('Tx_Smoothmigration_Service_Migration_Registry');
+		return GeneralUtility::makeInstance(__CLASS__);
 	}
 }
 
-?>

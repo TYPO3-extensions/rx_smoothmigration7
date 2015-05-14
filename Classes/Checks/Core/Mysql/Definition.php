@@ -24,26 +24,31 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+namespace Reelworx\RxSmoothmigration7\Checks\Core\MySql;
+
+use Reelworx\RxSmoothmigration7\Checks\AbstractCheckDefinition;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\CheckProcessor;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\CheckResultAnalyzer;
 
 /**
- * Class Tx_Smoothmigration_Checks_Core_Mysql_Definition
+ * Class Reelworx\RxSmoothmigration7\Checks\Core\MySql\Definition
  *
  * @author Peter Beernink
  */
-class Tx_Smoothmigration_Checks_Core_Mysql_Definition extends Tx_Smoothmigration_Checks_AbstractCheckDefinition {
+class Definition extends AbstractCheckDefinition {
 
 	/**
-	 * @return Tx_Smoothmigration_Domain_Interface_CheckProcessor
+	 * @return CheckProcessor
 	 */
 	public function getProcessor() {
-		return $this->getObjectManager()->get('Tx_Smoothmigration_Checks_Core_Mysql_Processor', $this);
+		return $this->getObjectManager()->get('Reelworx\\RxSmoothmigration7\\Checks\\Core\\MySql\\Processor', $this);
 	}
 
 	/**
-	 * @return Tx_Smoothmigration_Domain_Interface_CheckResultAnalyzer
+	 * @return CheckResultAnalyzer
 	 */
 	public function getResultAnalyzer() {
-		return $this->getObjectManager()->get('Tx_Smoothmigration_Checks_Core_Mysql_ResultAnalyzer', $this);
+		return $this->getObjectManager()->get('Reelworx\\RxSmoothmigration7\\Checks\\Core\\MySql\\ResultAnalyzer', $this);
 	}
 
 	/**

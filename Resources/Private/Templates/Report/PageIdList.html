@@ -1,5 +1,5 @@
-{namespace this=Tx_Smoothmigration_ViewHelpers}
-<f:layout name="module" />
+{namespace this=Reelworx\RxSmoothmigration7\ViewHelpers}
+<f:layout name="Module" />
 
 <f:section name="iconButtons">
 </f:section>
@@ -25,7 +25,7 @@
 				</f:for>
 			</f:if>
 		</select>
-		
+
 		<input type="text" id="limit" name="{argumentPrefix}[limit]" value="{f:if(condition: limit, then: '{limit}', else: '1000')}" onchange="document.forms['pageIdList'].submit();">
 	</f:form>
 

@@ -21,10 +21,19 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  */
 
+namespace Reelworx\RxSmoothmigration7\Service;
+
+use Reelworx\RxSmoothmigration7\Utility\ExtensionUtility;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\Requirements;
+use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
+
 /**
  * Class CheckRegistry
  */
-class Tx_Smoothmigration_Service_RequirementsAnalyzer implements t3lib_Singleton {
+class RequirementsAnalyzer implements SingletonInterface {
 
 	/**
 	 * @var integer
@@ -50,17 +59,17 @@ class Tx_Smoothmigration_Service_RequirementsAnalyzer implements t3lib_Singleton
 	 * Creating the RequirementsAnalyzer
 	 */
 	public function __construct() {
-		$this->runningTypo3Version = t3lib_utility_VersionNumber::convertVersionNumberToInteger(TYPO3_version);
-		$this->runningPhpVersion = t3lib_utility_VersionNumber::convertVersionNumberToInteger(phpversion());
+		$this->runningTypo3Version = VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version);
+		$this->runningPhpVersion = VersionNumberUtility::convertVersionNumberToInteger(phpversion());
 		$this->installedPhpExtensions = get_loaded_extensions();
 	}
 
 	/**
-	 * @param Tx_Smoothmigration_Domain_Interface_Requirements $check
+	 * @param Requirements $check
 	 *
 	 * @return boolean
 	 */
-	public function isActive(Tx_Smoothmigration_Domain_Interface_Requirements $check) {
+	public function isActive(Requirements $check) {
 		$active = TRUE;
 
 		$active = ($active && $this->checkTypo3Version($check));
@@ -72,35 +81,39 @@ class Tx_Smoothmigration_Service_RequirementsAnalyzer implements t3lib_Singleton
 	}
 
 	/**
-	 * @param Tx_Smoothmigration_Domain_Interface_Requirements $check
+	 * @param Requirements $check
 	 *
 	 * @return boolean
 	 */
-	protected function checkTypo3Version(Tx_Smoothmigration_Domain_Interface_Requirements $check) {
-		$minimalTypo3Version = t3lib_utility_VersionNumber::convertVersionNumberToInteger(trim($check->getMinimalTypo3Version()) ?: '0.0.0');
-		$maximalTypo3Version = t3lib_utility_VersionNumber::convertVersionNumberToInteger(trim($check->getMaximalTypo3Version()) ?: '99.0.0');
+	protected function checkTypo3Version(Requirements $check) {
+		$minimalTypo3Version = VersionNumberUtility::convertVersionNumberToInteger(trim($check->getMinimalTypo3Version())
+			?: '0.0.0');
+		$maximalTypo3Version = VersionNumberUtility::convertVersionNumberToInteger(trim($check->getMaximalTypo3Version())
+			?: '99.0.0');
 
 		return $this->checkVersionRange($this->runningTypo3Version, $minimalTypo3Version, $maximalTypo3Version);
 	}
 
 	/**
-	 * @param Tx_Smoothmigration_Domain_Interface_Requirements $check
+	 * @param Requirements $check
 	 *
 	 * @return boolean
 	 */
-	protected function checkPhpVersion(Tx_Smoothmigration_Domain_Interface_Requirements $check) {
-		$minimalPhpVersion = t3lib_utility_VersionNumber::convertVersionNumberToInteger(trim($check->getMinimalPhpVersion()) ?: '0.0.0');
-		$maximalPhpVersion = t3lib_utility_VersionNumber::convertVersionNumberToInteger(trim($check->getMaximalPhpVersion()) ?: '99.0.0');
+	protected function checkPhpVersion(Requirements $check) {
+		$minimalPhpVersion = VersionNumberUtility::convertVersionNumberToInteger(trim($check->getMinimalPhpVersion())
+			?: '0.0.0');
+		$maximalPhpVersion = VersionNumberUtility::convertVersionNumberToInteger(trim($check->getMaximalPhpVersion())
+			?: '99.0.0');
 
 		return $this->checkVersionRange($this->runningPhpVersion, $minimalPhpVersion, $maximalPhpVersion);
 	}
 
 	/**
-	 * @param Tx_Smoothmigration_Domain_Interface_Requirements $check
+	 * @param Requirements $check
 	 *
 	 * @return boolean
 	 */
-	protected function checkPhpExtensions(Tx_Smoothmigration_Domain_Interface_Requirements $check) {
+	protected function checkPhpExtensions(Requirements $check) {
 		$checkActive = TRUE;
 
 		$requiredExtensions = $check->getRequiredAvailablePhpModules();
@@ -123,11 +136,11 @@ class Tx_Smoothmigration_Service_RequirementsAnalyzer implements t3lib_Singleton
 	}
 
 	/**
-	 * @param Tx_Smoothmigration_Domain_Interface_Requirements $check
+	 * @param Requirements $check
 	 *
 	 * @return boolean
 	 */
-	protected function checkTypo3Extensions(Tx_Smoothmigration_Domain_Interface_Requirements $check) {
+	protected function checkTypo3Extensions(Requirements $check) {
 		if (count($this->installedTypo3Extensions) == 0) {
 			$this->initializeTypo3ExtensionArray();
 		}
@@ -138,7 +151,7 @@ class Tx_Smoothmigration_Service_RequirementsAnalyzer implements t3lib_Singleton
 			$requiredExtensions = $this->normalizeExtensionRequirementArray($requiredExtensions);
 			foreach ($requiredExtensions as $extensionKey => $versionRequirements) {
 				if (!array_key_exists($extensionKey, $this->installedTypo3Extensions) ||
-				    !$this->checkVersionRange($this->installedTypo3Extensions[$extensionKey], $versionRequirements['minimum'], $versionRequirements['maximum'])
+					!$this->checkVersionRange($this->installedTypo3Extensions[$extensionKey], $versionRequirements['minimum'], $versionRequirements['maximum'])
 				) {
 					$checkActive = FALSE;
 					break;
@@ -150,7 +163,7 @@ class Tx_Smoothmigration_Service_RequirementsAnalyzer implements t3lib_Singleton
 			$conflictingExtensions = $this->normalizeExtensionRequirementArray($conflictingExtensions);
 			foreach ($conflictingExtensions as $extensionKey => $versionRequirements) {
 				if (array_key_exists($extensionKey, $this->installedTypo3Extensions) &&
-				    $this->checkVersionRange($this->installedTypo3Extensions[$extensionKey], $versionRequirements['minimum'], $versionRequirements['maximum'])
+					$this->checkVersionRange($this->installedTypo3Extensions[$extensionKey], $versionRequirements['minimum'], $versionRequirements['maximum'])
 				) {
 					$checkActive = FALSE;
 					break;
@@ -177,18 +190,18 @@ class Tx_Smoothmigration_Service_RequirementsAnalyzer implements t3lib_Singleton
 				);
 			} else {
 				$normalizedData[trim($key)] = array();
-				$versionNumbers = t3lib_div::trimExplode('-', $value, FALSE, 2);
+				$versionNumbers = GeneralUtility::trimExplode('-', $value, FALSE, 2);
 
 				if (empty($versionNumbers[0])) {
 					$normalizedData[trim($key)]['minimum'] = 0;
 				} else {
-					$normalizedData[trim($key)]['minimum'] = t3lib_utility_VersionNumber::convertVersionNumberToInteger($versionNumbers[0]);
+					$normalizedData[trim($key)]['minimum'] = VersionNumberUtility::convertVersionNumberToInteger($versionNumbers[0]);
 				}
 
 				if (empty($versionNumbers[1])) {
 					$normalizedData[trim($key)]['maximum'] = 9999999;
 				} else {
-					$normalizedData[trim($key)]['maximum'] = t3lib_utility_VersionNumber::convertVersionNumberToInteger($versionNumbers[1]);
+					$normalizedData[trim($key)]['maximum'] = VersionNumberUtility::convertVersionNumberToInteger($versionNumbers[1]);
 				}
 			}
 		}
@@ -202,9 +215,11 @@ class Tx_Smoothmigration_Service_RequirementsAnalyzer implements t3lib_Singleton
 	 * @return void
 	 */
 	protected function initializeTypo3ExtensionArray() {
-		$extensionKeys = Tx_Smoothmigration_Utility_ExtensionUtility::getLoadedExtensions();
+		//@todo examine if getLoadedExtensionsFiltered is actually correct - not sure
+//		$extensionKeys = Reelworx\RxSmoothmigration7\Utility\ExtensionUtility::getLoadedExtensions();
+		$extensionKeys = ExtensionUtility::getLoadedExtensionsFiltered();
 		foreach ($extensionKeys as $extensionKey) {
-			$this->installedTypo3Extensions[$extensionKey] = t3lib_extMgm::getExtensionVersion($extensionKey);
+			$this->installedTypo3Extensions[$extensionKey] = ExtensionManagementUtility::getExtensionVersion($extensionKey);
 		}
 	}
 

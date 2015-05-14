@@ -21,18 +21,23 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  */
 
+namespace Reelworx\RxSmoothmigration7\Domain\Repository;
+
+use TYPO3\CMS\Extbase\Persistence\Repository;
+use TYPO3\CMS\Extbase\Persistence\QueryResultInterface;
+
 /**
- * A Deprecation Repository
+ * A Reelworx\RxSmoothmigration7\Domain\Model\Deprecation Repository
  *
  */
-class Tx_Smoothmigration_Domain_Repository_DeprecationRepository extends Tx_Extbase_Persistence_Repository {
+class DeprecationRepository extends Repository {
 
 	/**
 	 * Find replacements by Class and Method
 	 *
 	 * @param $class
 	 * @param $method
-	 * @return \Tx_Smoothmigration_Domain_Model_Deprecation
+	 * @return \Reelworx\RxSmoothmigration7\Domain\Model\Deprecation
 	 */
 	public function findOneStaticByClassAndMethod($class, $method) {
 		$result = NULL;
@@ -44,7 +49,7 @@ class Tx_Smoothmigration_Domain_Repository_DeprecationRepository extends Tx_Extb
 				$query->equals('isStatic', TRUE)
 			)
 		)->execute();
-		if ($queryResult instanceof Tx_Extbase_Persistence_QueryResultInterface) {
+		if ($queryResult instanceof QueryResultInterface) {
 			$result = $queryResult->getFirst();
 		} elseif (is_array($queryResult)) {
 			$result = isset($queryResult[0]) ? $queryResult[0] : NULL;

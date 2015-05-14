@@ -20,14 +20,19 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  */
+namespace Reelworx\RxSmoothmigration7\Checks\Extension\Obsolete;
+
+use Reelworx\RxSmoothmigration7\Domain\Model\IssueLocation\Extension;
+use Reelworx\RxSmoothmigration7\Checks\AbstractCheckProcessor;
+use Reelworx\RxSmoothmigration7\Domain\Model\Issue;
+use Reelworx\RxSmoothmigration7\Utility\ExtensionUtility;
 
 /**
- * Class Tx_Smoothmigration_Checks_Extension_Obsolete_Definition
+ * Class Definition
  *
  * @author Michiel Roos
  */
-class Tx_Smoothmigration_Checks_Extension_Obsolete_Processor
-	extends Tx_Smoothmigration_Checks_AbstractCheckProcessor {
+class Processor extends AbstractCheckProcessor {
 
 	/**
 	 * Execute the check
@@ -35,10 +40,10 @@ class Tx_Smoothmigration_Checks_Extension_Obsolete_Processor
 	 * @return void
 	 */
 	public function execute() {
-		$extensions = Tx_Smoothmigration_Utility_ExtensionUtility::getObsoleteExtensions();
+		$extensions = ExtensionUtility::getObsoleteExtensions();
 		foreach ($extensions as $extension) {
-			$location = new Tx_Smoothmigration_Domain_Model_IssueLocation_Extension($extension);
-			$this->issues[] = new Tx_Smoothmigration_Domain_Model_Issue($this->parentCheck->getIdentifier(), $location);
+			$location = new Extension($extension);
+			$this->issues[] = new Issue($this->parentCheck->getIdentifier(), $location);
 		}
 	}
 }

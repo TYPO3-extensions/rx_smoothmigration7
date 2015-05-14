@@ -21,9 +21,14 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  */
 
-// I can haz color / use unicode?
+namespace Reelworx\RxSmoothmigration7\Service;
+
+// Can I have color / use unicode?
+use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Core\SingletonInterface;
+
 if (DIRECTORY_SEPARATOR !== '\\') {
-	define('USE_COLOR', function_exists('posix_isatty') && posix_isatty(STDOUT));
+	define('USE_COLOR', function_exists('posix_isatty') && posix_isatty((int)STDOUT));
 	define('UNICODE', TRUE);
 } else {
 	define('USE_COLOR', getenv('ANSICON') !== FALSE);
@@ -39,11 +44,8 @@ if (@exec('tput cols')) {
 
 /**
  * Message Service
- *
- * @package smoothmigration
- * @subpackage Service
  */
-class Tx_Smoothmigration_Service_MessageService implements t3lib_Singleton {
+class MessageService implements SingletonInterface {
 
 	/**
 	 * Ansi color code
@@ -76,20 +78,19 @@ class Tx_Smoothmigration_Service_MessageService implements t3lib_Singleton {
 	private $completions = array();
 
 	/**
-	 * Output t3lib_FlashMessage
+	 * Output FlashMessage
 	 *
-	 * @param t3lib_FlashMessage $message
-	 *
+	 * @param FlashMessage $message
 	 * @return void
 	 */
-	public function outputMessage($message = NULL) {
+	public function outputMessage(FlashMessage $message = NULL) {
 		if ($message->getTitle()) {
 			$this->outputLine($message->getTitle());
 		}
 		if ($message->getMessage()) {
 			$this->outputLine($message->getMessage());
 		}
-		if ($message->getSeverity() !== t3lib_FlashMessage::OK) {
+		if ($message->getSeverity() !== FlashMessage::OK) {
 			$this->sendAndExit(1);
 		}
 	}
@@ -366,12 +367,9 @@ class Tx_Smoothmigration_Service_MessageService implements t3lib_Singleton {
 	}
 
 	/**
-	 * @param string $input the last command part
-	 * @param integer $index the $index is the place of the cursor in the line
-	 *
 	 * @return array
 	 */
-	public function autoComplete($input = '', $index = 0) {
+	public function autoComplete() {
 		$completions = array();
 		// Get info about the current buffer
 		$info = readline_info();
@@ -384,7 +382,8 @@ class Tx_Smoothmigration_Service_MessageService implements t3lib_Singleton {
 
 		if ($partCount === 3) {
 			if (in_array($inputParts[1], $this->completions['actions']['check']) OR
-				in_array($inputParts[1], $this->completions['actions']['migration'])) {
+				in_array($inputParts[1], $this->completions['actions']['migration'])
+			) {
 				$completions = $this->completions['extensions'];
 			}
 		} elseif ($partCount === 2) {

@@ -21,29 +21,33 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+namespace Reelworx\RxSmoothmigration7\Checks\Core\RemovedConstants;
+
+use Reelworx\RxSmoothmigration7\Checks\AbstractCheckResultAnalyzer;
+use Reelworx\RxSmoothmigration7\Domain\Model\Issue;
 
 /**
- * Class Tx_Smoothmigration_Checks_Core_RemovedConstants_ResultAnalyzer
+ * Class Reelworx\RxSmoothmigration7\Checks\Core\RemovedConstants\ResultAnalyzer
  *
  * @author Michiel Roos
  */
-class Tx_Smoothmigration_Checks_Core_RemovedConstants_ResultAnalyzer extends Tx_Smoothmigration_Checks_AbstractCheckResultAnalyzer {
+class ResultAnalyzer extends AbstractCheckResultAnalyzer {
 
 	/**
-	 * @param Tx_Smoothmigration_Domain_Model_Issue $issue
+	 * @param Issue $issue
 	 *
 	 * @return string
 	 */
-	public function getExplanation(Tx_Smoothmigration_Domain_Model_Issue $issue) {
+	public function getExplanation(Issue $issue) {
 		return $this->ll('result.typo3-core-code-removedConstants.explanation');
 	}
 
 	/**
-	 * @param Tx_Smoothmigration_Domain_Model_Issue $issue
+	 * @param Issue $issue
 	 *
 	 * @return string
 	 */
-	public function getSolution(Tx_Smoothmigration_Domain_Model_Issue $issue) {
+	public function getSolution(Issue $issue) {
 		return $this->ll(
 			'result.typo3-core-code-mysql.solution',
 			array(
@@ -56,4 +60,3 @@ class Tx_Smoothmigration_Checks_Core_RemovedConstants_ResultAnalyzer extends Tx_
 
 }
 
-?>

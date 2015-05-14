@@ -20,17 +20,17 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  */
+namespace Reelworx\RxSmoothmigration7\Domain\Model\IssueLocation;
 
 /**
- * Class Tx_Smoothmigration_Domain_Model_IssueLocation_Extension
+ * Class Reelworx\RxSmoothmigration7\Domain\Model\IssueLocation\Extension
  *
  * @author Michiel Roos
  */
-class Tx_Smoothmigration_Domain_Model_IssueLocation_Extension
-	extends Tx_Smoothmigration_Domain_Model_IssueLocation_PhysicalLocation {
+class Extension extends PhysicalLocation {
 
 	/**
-	 * Extension Name
+	 * Reelworx\RxSmoothmigration7\Domain\Model\IssueLocation\Extension Name
 	 *
 	 * @var string
 	 */
@@ -131,4 +131,3 @@ class Tx_Smoothmigration_Domain_Model_IssueLocation_Extension
 
 }
 
-?>

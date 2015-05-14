@@ -26,12 +26,17 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+namespace Reelworx\RxSmoothmigration7\Domain\Model;
+
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\IssueLocation;
+use TYPO3\CMS\Extbase\DomainObject\AbstractEntity;
+
 /**
- * Class Tx_Smoothmigration_Domain_Model_Issue
+ * Class Reelworx\RxSmoothmigration7\Domain\Model\Issue
  *
  * @author Steffen Ritter
  */
-class Tx_Smoothmigration_Domain_Model_Issue extends Tx_Extbase_DomainObject_AbstractEntity {
+class Issue extends AbstractEntity {
 
 	/**
 	 * @var string
@@ -49,7 +54,7 @@ class Tx_Smoothmigration_Domain_Model_Issue extends Tx_Extbase_DomainObject_Abst
 	protected $extension;
 
 	/**
-	 * @var Tx_Smoothmigration_Domain_Interface_IssueLocation
+	 * @var IssueLocation
 	 */
 	protected $location;
 
@@ -75,9 +80,9 @@ class Tx_Smoothmigration_Domain_Model_Issue extends Tx_Extbase_DomainObject_Abst
 
 	/**
 	 * @param string $checkIdentifier
-	 * @param Tx_Smoothmigration_Domain_Interface_IssueLocation $issueDetails
+	 * @param \Reelworx\RxSmoothmigration7\Domain\Interfaces\IssueLocation $issueDetails
 	 */
-	public function __construct($checkIdentifier, Tx_Smoothmigration_Domain_Interface_IssueLocation $issueDetails) {
+	public function __construct($checkIdentifier, IssueLocation $issueDetails) {
 		$this->setLocation($issueDetails);
 		$this->inspection = $checkIdentifier;
 	}
@@ -102,7 +107,7 @@ class Tx_Smoothmigration_Domain_Model_Issue extends Tx_Extbase_DomainObject_Abst
 	}
 
 	/**
-	 * @param \Tx_Smoothmigration_Domain_Interface_IssueLocation $details
+	 * @param \Reelworx\RxSmoothmigration7\Domain\Interfaces\IssueLocation $details
 	 *
 	 * @return void
 	 */
@@ -114,7 +119,7 @@ class Tx_Smoothmigration_Domain_Model_Issue extends Tx_Extbase_DomainObject_Abst
 	}
 
 	/**
-	 * @return \Tx_Smoothmigration_Domain_Interface_IssueLocation
+	 * @return \Reelworx\RxSmoothmigration7\Domain\Interfaces\IssueLocation
 	 */
 	public function getLocation() {
 		if ($this->location == NULL && $this->locationInfo !== NULL) {

@@ -20,14 +20,19 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  */
+namespace Reelworx\RxSmoothmigration7\Checks\Extension\IncompatibleWithLts;
+
+use Reelworx\RxSmoothmigration7\Domain\Model\IssueLocation\Extension;
+use Reelworx\RxSmoothmigration7\Checks\AbstractCheckProcessor;
+use Reelworx\RxSmoothmigration7\Domain\Model\Issue;
+use Reelworx\RxSmoothmigration7\Utility\ExtensionUtility;
 
 /**
- * Class Tx_Smoothmigration_Checks_Extension_IncompatibleWithLts_Definition
+ * Class Definition
  *
  * @author Michiel Roos
  */
-class Tx_Smoothmigration_Checks_Extension_IncompatibleWithLts_Processor
-	extends Tx_Smoothmigration_Checks_AbstractCheckProcessor {
+class Processor extends AbstractCheckProcessor {
 
 	/**
 	 * Execute the check
@@ -35,10 +40,10 @@ class Tx_Smoothmigration_Checks_Extension_IncompatibleWithLts_Processor
 	 * @return void
 	 */
 	public function execute() {
-		$extensions = Tx_Smoothmigration_Utility_ExtensionUtility::getIncompatibleExtensions();
+		$extensions = ExtensionUtility::getIncompatibleExtensions('7.2.0');
 		foreach ($extensions as $extension => $versionRange) {
-			$location = new Tx_Smoothmigration_Domain_Model_IssueLocation_Extension($extension, $versionRange[0], $versionRange[1]);
-			$this->issues[] = new Tx_Smoothmigration_Domain_Model_Issue($this->parentCheck->getIdentifier(), $location);
+			$location = new Extension($extension, $versionRange[0], $versionRange[1]);
+			$this->issues[] = new Issue($this->parentCheck->getIdentifier(), $location);
 		}
 	}
 }

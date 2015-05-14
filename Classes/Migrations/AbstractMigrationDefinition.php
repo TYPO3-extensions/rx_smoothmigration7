@@ -24,17 +24,24 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+namespace Reelworx\RxSmoothmigration7\Migrations;
+
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\Migration;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\MigrationDescription;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Object\ObjectManager;
+use TYPO3\CMS\Lang\LanguageService;
 
 /**
- * Class Tx_Smoothmigration_Migrations_AbstractMigrationDefinition
+ * Class Reelworx\RxSmoothmigration7\Migrations\AbstractMigrationDefinition
  *
  * @author Steffen Ritter
  */
-abstract class Tx_Smoothmigration_Migrations_AbstractMigrationDefinition implements Tx_Smoothmigration_Domain_Interface_Migration {
+abstract class AbstractMigrationDefinition implements Migration {
 
 	/**
 	 *
-	 * @var Tx_Extbase_Object_ObjectManager
+	 * @var ObjectManager
 	 */
 	protected $objectManager;
 
@@ -42,11 +49,7 @@ abstract class Tx_Smoothmigration_Migrations_AbstractMigrationDefinition impleme
 	 * Constructor
 	 */
 	public function __construct() {
-		if (t3lib_div::int_from_ver(TYPO3_version) < 6001000) {
-			$this->objectManager = t3lib_div::makeInstance('Tx_Extbase_Object_ObjectManager');
-		} else {
-			$this->objectManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('\TYPO3\CMS\Extbase\Object\ObjectManager');
-		}
+		$this->objectManager = GeneralUtility::makeInstance('TYPO3\\CMS\\Extbase\\Object\\ObjectManager');
 	}
 
 	/**
@@ -84,7 +87,7 @@ abstract class Tx_Smoothmigration_Migrations_AbstractMigrationDefinition impleme
 	 * @return int
 	 */
 	public function getType() {
-		return Tx_Smoothmigration_Domain_Interface_MigrationDescription::TYPE_PHP_CODE;
+		return MigrationDescription::TYPE_PHP_CODE;
 	}
 
 	/**
@@ -179,7 +182,9 @@ abstract class Tx_Smoothmigration_Migrations_AbstractMigrationDefinition impleme
 	protected function getLanguageLabelForMigration($field) {
 		$classParts = explode('_', __CLASS__);
 		$extensionName = strtolower($classParts[1]);
-		return $GLOBALS['LANG']->sL(
+		/** @var LanguageService $lang */
+		$lang = $GLOBALS['LANG'];
+		return $lang->sL(
 			'LLL:EXT:' . $extensionName . '/Resources/Private/Language/locallang.xml:migration.' . $this->getIdentifier() . '.' . $field
 		);
 	}

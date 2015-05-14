@@ -1,11 +1,21 @@
 <?php
 
+namespace Reelworx\RxSmoothmigration7\Service\Check;
+
+use Reelworx\RxSmoothmigration7\Service\RequirementsAnalyzer;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\Check;
+use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+
 
 /**
  * Class CheckRegistry
  */
-class Tx_Smoothmigration_Service_Check_Registry implements t3lib_Singleton {
+class Registry implements SingletonInterface {
 
+	/**
+	 * @var array
+	 */
 	protected $registeredChecks = array();
 
 
@@ -15,7 +25,7 @@ class Tx_Smoothmigration_Service_Check_Registry implements t3lib_Singleton {
 	 * @return void
 	 */
 	public function registerCheck($className) {
-		if (class_exists($className) && in_array('Tx_Smoothmigration_Domain_Interface_Check', class_implements($className))) {
+		if (class_exists($className) && in_array('Reelworx\\RxSmoothmigration7\\Domain\\Interfaces\\Check', class_implements($className))) {
 			$this->registeredChecks[] = $className;
 		}
 	}
@@ -34,16 +44,16 @@ class Tx_Smoothmigration_Service_Check_Registry implements t3lib_Singleton {
 	/**
 	 * Returns Instances of all registered checks which apply to this instance.
 	 *
-	 * @return Tx_Smoothmigration_Domain_Interface_Check[]
+	 * @return \Reelworx\RxSmoothmigration7\Domain\Interfaces\Check[]
 	 */
 	public function getActiveChecks() {
 		$activeChecks = array();
-		/** @var Tx_Smoothmigration_Service_RequirementsAnalyzer $requirementsAnalyzer */
-		$requirementsAnalyzer = t3lib_div::makeInstance('Tx_Smoothmigration_Service_RequirementsAnalyzer');
+		/** @var RequirementsAnalyzer $requirementsAnalyzer */
+		$requirementsAnalyzer = GeneralUtility::makeInstance('Reelworx\\RxSmoothmigration7\\Service\\RequirementsAnalyzer');
 
 		foreach ($this->registeredChecks as $className) {
-			/** @var Tx_Smoothmigration_Domain_Interface_Check $check */
-			$check = t3lib_div::makeInstance($className);
+			/** @var \Reelworx\RxSmoothmigration7\Domain\Interfaces\Check $check */
+			$check = GeneralUtility::makeInstance($className);
 			if ($requirementsAnalyzer->isActive($check)) {
 				$activeChecks[] = $check;
 			}
@@ -55,7 +65,7 @@ class Tx_Smoothmigration_Service_Check_Registry implements t3lib_Singleton {
 	/**
 	 * @param $searchedIdentifier
 	 *
-	 * @return null|Tx_Smoothmigration_Domain_Interface_Check
+	 * @return NULLl|\Reelworx\RxSmoothmigration7\Domain\Interfaces\Check
 	 */
 	public function getActiveCheckByIdentifier($searchedIdentifier) {
 		$checks = $this->getActiveChecks();
@@ -69,9 +79,9 @@ class Tx_Smoothmigration_Service_Check_Registry implements t3lib_Singleton {
 	}
 
 	/**
-	 * @return Tx_Smoothmigration_Service_Check_Registry
+	 * @return Registry
 	 */
 	public static function getInstance() {
-		return t3lib_div::makeInstance('Tx_Smoothmigration_Service_Check_Registry');
+		return GeneralUtility::makeInstance(__CLASS__);
 	}
 }

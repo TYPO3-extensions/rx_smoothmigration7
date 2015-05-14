@@ -25,21 +25,27 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-if (t3lib_div::int_from_ver(TYPO3_version) < 6002000) {
-	require_once(PATH_site . TYPO3_mainDir . 'template.php');
-}
+namespace Reelworx\RxSmoothmigration7\Controller;
+
+use TYPO3\CMS\Core\FormProtection\FormProtectionFactory;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Mvc\RequestInterface;
+use TYPO3\CMS\Extbase\Mvc\ResponseInterface;
+use TYPO3\CMS\Extensionmanager\Controller\ActionController;
+use TYPO3\CMS\Lang\LanguageService;
 
 /**
  * Abstract action controller.
  *
  * @author Steffen Ritter
-
  */
-class Tx_Smoothmigration_Controller_AbstractModuleController extends Tx_Extbase_MVC_Controller_ActionController {
+class AbstractModuleController extends ActionController {
+
 	/**
 	 * @var string Key of the extension this controller belongs to
 	 */
-	protected $extensionName = 'Smoothmigration';
+	protected $extensionName = 'RxSmoothmigration7';
 
 	/**
 	 * @var string The module security token
@@ -47,45 +53,50 @@ class Tx_Smoothmigration_Controller_AbstractModuleController extends Tx_Extbase_
 	protected $moduleToken = '';
 
 	/**
-	 * @var t3lib_PageRenderer
+	 * @var \TYPO3\CMS\Core\Page\PageRenderer
 	 */
 	protected $pageRenderer;
+
+	/**
+	 * @var \TYPO3\CMS\Backend\Template\DocumentTemplate
+	 */
+	protected $template;
+
 	/**
 	 * Initializes the controller before invoking an action method.
 	 *
 	 * @return void
 	 */
 	protected function initializeAction() {
-		$this->pageRenderer->addCssFile(t3lib_extMgm::extRelPath('smoothmigration') . 'Resources/Public/StyleSheet/module.css');
-		$this->pageRenderer->addInlineLanguageLabelFile('EXT:smoothmigration/Resources/Private/Language/locallang.xml');
-		$this->pageRenderer->addJsLibrary('jquery', t3lib_extMgm::extRelPath('smoothmigration') . 'Resources/Public/JavaScript/jquery-1.10.1.min.js');
-		$this->pageRenderer->addJsLibrary('sprintf', t3lib_extMgm::extRelPath('smoothmigration') . 'Resources/Public/JavaScript/sprintf.min.js');
-		$this->pageRenderer->addJsFile(t3lib_extMgm::extRelPath('smoothmigration') . 'Resources/Public/JavaScript/General.js');
-
-		if (t3lib_div::int_from_ver(TYPO3_version) > 6001000) {
-			$this->moduleToken = \TYPO3\CMS\Core\FormProtection\FormProtectionFactory::get()->generateToken('moduleCall', 'tools_SmoothmigrationSmoothmigration');
-		}
+		$extRelPath = ExtensionManagementUtility::extRelPath('rx_smoothmigration7');
+		$this->pageRenderer->addCssFile($extRelPath . 'Resources/Public/StyleSheet/module.css');
+		$this->pageRenderer->addInlineLanguageLabelFile('EXT:rx_smoothmigration7/Resources/Private/Language/locallang.xml');
+		$this->pageRenderer->addJsLibrary('jquery', $extRelPath . 'Resources/Public/JavaScript/jquery-1.10.1.min.js');
+		$this->pageRenderer->addJsLibrary('sprintf', $extRelPath . 'Resources/Public/JavaScript/sprintf.min.js');
+		$this->pageRenderer->addJsFile($extRelPath . 'Resources/Public/JavaScript/General.js');
+		$this->moduleToken = FormProtectionFactory::get()->generateToken('moduleCall', 'tools_RxSmoothmigration7Smoothmigration');
 	}
 
 	/**
 	 * Processes a general request. The result can be returned by altering the given response.
 	 *
-	 * @param Tx_Extbase_MVC_RequestInterface $request The request object
-	 * @param Tx_Extbase_MVC_ResponseInterface $response The response, modified by this handler
-	 * @throws Tx_Extbase_MVC_Exception_UnsupportedRequestType if the controller doesn't support the current request type
+	 * @param RequestInterface $request The request object
+	 * @param ResponseInterface $response The response, modified by this handler
 	 * @return void
 	 */
-	public function processRequest(Tx_Extbase_MVC_RequestInterface $request, Tx_Extbase_MVC_ResponseInterface $response) {
-		$this->template = t3lib_div::makeInstance('template');
+	public function processRequest(RequestInterface $request, ResponseInterface $response) {
+		$this->template = GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\Template\\DocumentTemplate');
 		$this->pageRenderer = $this->template->getPageRenderer();
 
-		$GLOBALS['SOBE'] = new stdClass();
+		$GLOBALS['SOBE'] = new \stdClass();
 		$GLOBALS['SOBE']->doc = $this->template;
 
 		parent::processRequest($request, $response);
 
+		/** @var LanguageService $lang */
+		$lang = $GLOBALS['LANG'];
 		$pageHeader = $this->template->startpage(
-			$GLOBALS['LANG']->sL('LLL:EXT:smoothmigration/Resources/Private/Language/locallang.xml:module.title')
+			$lang->sL('LLL:EXT:rx_smoothmigration7/Resources/Private/Language/locallang.xml:module.title')
 		);
 		$pageEnd = $this->template->endPage();
 
@@ -93,7 +104,3 @@ class Tx_Smoothmigration_Controller_AbstractModuleController extends Tx_Extbase_
 	}
 }
 
-if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/smoothmigration/Classes/Controller/AbstractModuleController.php'])) {
-	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/smoothmigration/Classes/Controller/AbstractModuleController.php']);
-}
-?>

@@ -22,12 +22,16 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+namespace Reelworx\RxSmoothmigration7\Domain\Model;
+
+use TYPO3\CMS\Extbase\DomainObject\AbstractEntity;
+
 /**
- * Class Tx_Smoothmigration_Domain_Model_Deprecation
+ * Class Reelworx\RxSmoothmigration7\Domain\Model\Deprecation
  *
  * @author Michiel Roos
  */
-class Tx_Smoothmigration_Domain_Model_Deprecation extends Tx_Extbase_DomainObject_AbstractEntity {
+class Deprecation extends AbstractEntity {
 
 	/**
 	 * @var string
@@ -223,4 +227,3 @@ class Tx_Smoothmigration_Domain_Model_Deprecation extends Tx_Extbase_DomainObjec
 
 }
 
-?>

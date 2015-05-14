@@ -22,8 +22,13 @@
  */
 
 // I can haz color / use unicode?
+namespace Reelworx\RxSmoothmigration7\Controller;
+
+use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
+
 if (DIRECTORY_SEPARATOR !== '\\') {
-	define('USE_COLOR', function_exists('posix_isatty') && posix_isatty(STDOUT));
+	define('USE_COLOR', function_exists('posix_isatty') && posix_isatty((int)STDOUT));
 	define('UNICODE', TRUE);
 } else {
 	define('USE_COLOR', getenv('ANSICON') !== FALSE);
@@ -43,12 +48,12 @@ if (@exec('tput cols')) {
  * @package smoothmigration
  * @subpackage Controller
  */
-class Tx_Smoothmigration_Controller_AbstractCommandController extends Tx_Extbase_MVC_Controller_CommandController {
+class AbstractCommandController extends CommandController {
 
 	/**
-	 * Output t3lib_FlashMessage
+	 * Output FlashMessage
 	 *
-	 * @param t3lib_FlashMessage $message
+	 * @param FlashMessage $message
 	 *
 	 * @return void
 	 */
@@ -59,7 +64,7 @@ class Tx_Smoothmigration_Controller_AbstractCommandController extends Tx_Extbase
 		if ($message->getMessage()) {
 			$this->outputLine($message->getMessage());
 		}
-		if ($message->getSeverity() !== t3lib_FlashMessage::OK) {
+		if ($message->getSeverity() !== FlashMessage::OK) {
 			$this->sendAndExit(1);
 		}
 	}
@@ -240,7 +245,7 @@ class Tx_Smoothmigration_Controller_AbstractCommandController extends Tx_Extbase
 	/**
 	 * Show a header message
 	 *
-	 * @param $message
+	 * @param string $message
 	 * @param string $style
 	 * @param boolean $flushOutput
 	 *
@@ -248,7 +253,7 @@ class Tx_Smoothmigration_Controller_AbstractCommandController extends Tx_Extbase
 	 */
 	public function headerMessage($message, $style = 'info', $flushOutput = TRUE) {
 		// Crop the message
-		$message = substr($message, 0, TERMINAL_WIDTH );
+		$message = substr($message, 0, TERMINAL_WIDTH);
 		if (UNICODE) {
 			$linePaddingLength = mb_strlen('─') * (TERMINAL_WIDTH);
 			$message =

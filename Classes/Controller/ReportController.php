@@ -25,22 +25,33 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+namespace Reelworx\RxSmoothmigration7\Controller;
+
+use Reelworx\RxSmoothmigration7\Utility\DatabaseUtility;
+use Reelworx\RxSmoothmigration7\Utility\ExtensionUtility;
+use Reelworx\RxSmoothmigration7\Domain\Repository\IssueRepository;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Backend\Utility\IconUtility;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\MathUtility;
+
 /**
- * Class Tx_Smoothmigration_Controller_ReportController
+ * Class ReportController
  */
-class Tx_Smoothmigration_Controller_ReportController extends Tx_Smoothmigration_Controller_AbstractModuleController {
+class ReportController extends AbstractModuleController {
 
 	/**
-	 * @var Tx_Smoothmigration_Domain_Repository_IssueRepository {
+	 * @var \Reelworx\RxSmoothmigration7\Domain\Repository\IssueRepository
 	 */
 	protected $issueRepository;
 
 	/**
-	 * @param Tx_Smoothmigration_Domain_Repository_IssueRepository $issueRepository
+	 * @param IssueRepository $issueRepository
 	 *
 	 * @return void
 	 */
-	public function injectIssueRepository(Tx_Smoothmigration_Domain_Repository_IssueRepository $issueRepository) {
+	public function injectIssueRepository(IssueRepository $issueRepository) {
 		$this->issueRepository = $issueRepository;
 	}
 
@@ -50,8 +61,7 @@ class Tx_Smoothmigration_Controller_ReportController extends Tx_Smoothmigration_
 	 * @return void
 	 */
 	public function checksAction() {
-		/** @var Tx_Smoothmigration_Service_Check_Registry $checkRegistry */
-		$checkRegistry = $this->objectManager->get('Tx_Smoothmigration_Service_Check_Registry');
+		$checkRegistry = $this->objectManager->get('Reelworx\\RxSmoothmigration7\\Service\\Registry');
 		$activeChecks = $checkRegistry->getActiveChecks();
 		$this->view->assign('checks', $activeChecks);
 		$this->view->assign('issuesByCheck', $this->issueRepository->findAllGroupedByInspection($activeChecks));
@@ -72,7 +82,7 @@ class Tx_Smoothmigration_Controller_ReportController extends Tx_Smoothmigration_
 		$values['argumentPrefix'] = 'tx_smoothmigration_tools_smoothmigrationsmoothmigration';
 
 		// List of sites
-		$sites = Tx_Smoothmigration_Utility_DatabaseUtility::getSiteRoots();
+		$sites = DatabaseUtility::getSiteRoots();
 		$selectSites = array();
 		foreach ($sites as $siteUid => $siteData) {
 			$selectSites[$siteUid] = $siteUid . ': ' . $siteData['title'];
@@ -92,9 +102,9 @@ class Tx_Smoothmigration_Controller_ReportController extends Tx_Smoothmigration_
 		}
 
 		if ($selectedSite) {
-			$values['pageCount'] = count(Tx_Smoothmigration_Utility_DatabaseUtility::getChildPagesArray($selectedSite, $limit));
-			$values['pageIds'] = implode(', ', Tx_Smoothmigration_Utility_DatabaseUtility::getChildPagesArray($selectedSite, $limit));
-			$values['domainRecords'] = Tx_Smoothmigration_Utility_DatabaseUtility::getDomainRecords($selectedSite);
+			$values['pageCount'] = count(DatabaseUtility::getChildPagesArray($selectedSite, $limit));
+			$values['pageIds'] = implode(', ', DatabaseUtility::getChildPagesArray($selectedSite, $limit));
+			$values['domainRecords'] = DatabaseUtility::getDomainRecords($selectedSite);
 		}
 
 		$this->view->assignMultiple($values);
@@ -114,7 +124,7 @@ class Tx_Smoothmigration_Controller_ReportController extends Tx_Smoothmigration_
 		$values['argumentPrefix'] = 'tx_smoothmigration_tools_smoothmigrationsmoothmigration';
 
 		// List of frontend extensions
-		$loadedExtensions = Tx_Smoothmigration_Utility_ExtensionUtility::getFrontendExtensions(FALSE);
+		$loadedExtensions = ExtensionUtility::getFrontendExtensions(FALSE);
 		$this->view->assign('loadedExtensions', $loadedExtensions);
 
 		$selectedExtension = '';
@@ -123,7 +133,7 @@ class Tx_Smoothmigration_Controller_ReportController extends Tx_Smoothmigration_
 		}
 
 		// List of sites
-		$sites = Tx_Smoothmigration_Utility_DatabaseUtility::getSiteRoots();
+		$sites = DatabaseUtility::getSiteRoots();
 		$selectSites = array();
 		foreach ($sites as $siteUid => $siteData) {
 			$selectSites[$siteUid] = $siteUid . ': ' . $siteData['title'];
@@ -138,22 +148,24 @@ class Tx_Smoothmigration_Controller_ReportController extends Tx_Smoothmigration_
 
 		if ($selectedSite && $selectedExtension != 1) {
 			// Get TypoScript configuration for selected site
-			if (count($sites) && $selectedSite) {
-				$tmpl = t3lib_div::makeInstance('t3lib_tsparser_ext');
-				$tmpl->tt_track = 0;
+			if (count($sites)) {
+				$tmpl = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\TypoScript\\ExtendedTemplateService');
+				$tmpl->tt_track = FALSE;
 				$tmpl->init();
-				$tmpl->runThroughTemplates(t3lib_BEfunc::BEgetRootLine((int)$selectedSite, 'AND 1=1'), 0);
+				$tmpl->runThroughTemplates(BackendUtility::BEgetRootLine((int)$selectedSite, 'AND 1=1'), 0);
 				$tmpl->generateConfig();
 			}
 
 			// Fetch correct class names
 			$correctClassNames = array();
 			if ($selectedExtension) {
-				$correctClassNames[$selectedExtension] = t3lib_extMgm::getCN($selectedExtension);
+				$correctClassNames[$selectedExtension] = ExtensionManagementUtility::getCN($selectedExtension);
 			} else {
-				$extensionKeys = Tx_Smoothmigration_Utility_ExtensionUtility::getLoadedExtensions();
+				//@todo examine if getLoadedExtensionsFiltered is actually correct - not sure
+//				$extensionKeys = Reelworx\RxSmoothmigration7\Utility\ExtensionUtility::getLoadedExtensions();
+				$extensionKeys = ExtensionUtility::getLoadedExtensionsFiltered();
 				foreach ($extensionKeys as $key) {
-					$correctClassNames[$key] = t3lib_extMgm::getCN($key);
+					$correctClassNames[$key] = ExtensionManagementUtility::getCN($key);
 				}
 			}
 
@@ -189,7 +201,7 @@ class Tx_Smoothmigration_Controller_ReportController extends Tx_Smoothmigration_
 			foreach ($tmpl->setup['tt_content.']['list.']['20.'] as $listType => $_) {
 				if (preg_match('/^[^.]+$/', $listType)) {
 					foreach ($values['plugins'] as $correctedClassName) {
-						if (preg_match('/^' . $correctedClassName .'/', $listType)) {
+						if (preg_match('/^' . $correctedClassName . '/', $listType)) {
 							$values['listTypes'][] = $listType;
 						}
 					}
@@ -200,22 +212,24 @@ class Tx_Smoothmigration_Controller_ReportController extends Tx_Smoothmigration_
 			$values['pages'] = array();
 			if (count($values['listTypes']) || count($values['cTypes'])) {
 				$values['pages'] =
-					Tx_Smoothmigration_Utility_DatabaseUtility::getPagesWithContentElements($values['cTypes'], $values['listTypes']);
+					DatabaseUtility::getPagesWithContentElements($values['cTypes'], $values['listTypes']);
 			}
 
 			$pages = array();
 			foreach ($values['pages'] as $page) {
 				$this->setInPageArray(
 					$pages,
-					t3lib_BEfunc::BEgetRootLine($page['pageUid'], 'AND 1=1'),
+					BackendUtility::BEgetRootLine($page['pageUid'], 'AND 1=1'),
 					$page
 				);
 			}
 
+			/** @var \TYPO3\CMS\Lang\LanguageService $lang */
+			$lang = $GLOBALS['LANG'];
 			$lines = array();
 			$lines[] = '<tr class="t3-row-header">
 				<td nowrap>Page title</td>
-				<td nowrap>' . $GLOBALS['LANG']->getLL('isExt') . '</td>
+				<td nowrap>' . $lang->getLL('isExt') . '</td>
 				</tr>';
 			$lines = array_merge($lines, $this->renderList($pages));
 
@@ -244,7 +258,7 @@ class Tx_Smoothmigration_Controller_ReportController extends Tx_Smoothmigration_
 	 */
 	public function showAction() {
 		// Set a default site root so we can link to the extension usage report
-		$sites = Tx_Smoothmigration_Utility_DatabaseUtility::getSiteRoots();
+		$sites = DatabaseUtility::getSiteRoots();
 		$defaultSite = array_shift($sites);
 		$this->view->assign('site', $defaultSite['uid']);
 		$this->view->assign('issueCount', $this->issueRepository->findAll()->count());
@@ -262,7 +276,7 @@ class Tx_Smoothmigration_Controller_ReportController extends Tx_Smoothmigration_
 
 		$this->pageRenderer->addJsFile($this->backPath . '../t3lib/js/extjs/ux/flashmessages.js');
 
-		$resourcePath = t3lib_extMgm::extRelPath('smoothmigration') . 'Resources/Public/JavaScript/';
+		$resourcePath = ExtensionManagementUtility::extRelPath('rx_smoothmigration7') . 'Resources/Public/JavaScript/';
 
 		//$this->pageRenderer->addCssFile($resourcePath . 'gridfilters/css/GridFilters.css');
 
@@ -317,28 +331,24 @@ class Tx_Smoothmigration_Controller_ReportController extends Tx_Smoothmigration_
 		if (is_array($pages)) {
 			reset($pages);
 			static $i;
-			$isV4 = t3lib_div::int_from_ver(TYPO3_version) < 6002000;
 			foreach ($pages as $k => $v) {
-				if ($isV4) {
-					$valueIsInt = t3lib_div::testInt($k);
-				} else {
-					$valueIsInt = \TYPO3\CMS\Core\Utility\MathUtility::canBeInterpretedAsInteger($k);
-				}
-				if ($valueIsInt) {
+				if (MathUtility::canBeInterpretedAsInteger($k)) {
 					if (isset($pages[$k . "_"])) {
 						$lines[] = '<tr class="' . ($i++ % 2 == 0 ? 'bgColor4' : 'bgColor6') . '">
 							<td nowrap><img src="clear.gif" width="1" height="1" hspace=' . ($c * 10) . ' align="top">' .
-							'<a href="' . htmlspecialchars(t3lib_div::linkThisScript(array('id' => $k))) . '">' .
-							t3lib_iconWorks::getSpriteIconForRecord('pages', t3lib_BEfunc::getRecordWSOL('pages', $k), array("title" => 'ID: ' . $k)) .
-							t3lib_div::fixed_lgd_cs($pages[$k], 30) . '</a></td>
-							<td align="center">' . ($pages[$k . '_']['root_min_val'] == 0 ? t3lib_iconWorks::getSpriteIcon('status-status-checked') : "&nbsp;") .
+							'<a href="' . htmlspecialchars(GeneralUtility::linkThisScript(array('id' => $k))) . '">' .
+							IconUtility::getSpriteIconForRecord('pages', BackendUtility::getRecordWSOL('pages', $k), array("title" => 'ID: ' . $k)) .
+							GeneralUtility::fixed_lgd_cs($pages[$k], 30) . '</a></td>
+							<td align="center">' . ($pages[$k . '_']['root_min_val'] == 0
+								? IconUtility::getSpriteIcon('status-status-checked')
+								: "&nbsp;") .
 							'</td>
 							</tr>';
 					} else {
 						$lines[] = '<tr class="' . ($i++ % 2 == 0 ? 'bgColor4' : 'bgColor6') . '">
 							<td nowrap ><img src="clear.gif" width="1" height="1" hspace=' . ($c * 10) . ' align=top>' .
-							t3lib_iconWorks::getSpriteIconForRecord('pages', t3lib_BEfunc::getRecordWSOL('pages', $k)) .
-							t3lib_div::fixed_lgd_cs($pages[$k], 30) . '</td>
+							IconUtility::getSpriteIconForRecord('pages', BackendUtility::getRecordWSOL('pages', $k)) .
+							GeneralUtility::fixed_lgd_cs($pages[$k], 30) . '</td>
 							<td align="center"></td>
 							</tr>';
 					}
@@ -348,9 +358,4 @@ class Tx_Smoothmigration_Controller_ReportController extends Tx_Smoothmigration_
 		}
 		return $lines;
 	}
-}
-
-
-if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/smoothmigration/Classes/Controller/ReviewController.php'])) {
-	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/smoothmigration/Classes/Controller/ReviewController.php']);
 }

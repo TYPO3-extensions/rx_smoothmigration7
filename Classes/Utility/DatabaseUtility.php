@@ -1,8 +1,8 @@
 <?php
-/**
+/*
  *  Copyright notice
  *
- *  ⓒ 2014 Michiel Roos <michiel@maxserv.nl>
+ *  (c) 2014 Michiel Roos <michiel@maxserv.nl>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is free
@@ -21,10 +21,15 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  */
 
+namespace Reelworx\RxSmoothmigration7\Utility;
+
+use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Dbal\Database\DatabaseConnection;
+
 /**
- * Class Tx_Smoothmigration_Utility_DatabaseUtility
+ * Class Reelworx\RxSmoothmigration7\Utility\DatabaseUtility
  */
-class Tx_Smoothmigration_Utility_DatabaseUtility implements t3lib_Singleton {
+class DatabaseUtility implements SingletonInterface {
 
 	/**
 	 * Number of tree levels - 1
@@ -39,8 +44,8 @@ class Tx_Smoothmigration_Utility_DatabaseUtility implements t3lib_Singleton {
 	 * @param $q
 	 * @return string The query to find child id's
 	 */
-	private function getChildIds($level, $q) {
-		$GLOBALS['TYPO3_DB']->sql_query('INSERT INTO temp_child_ids (pid, doktype) ' . $q . ';');
+	static private function getChildIds($level, $q) {
+		static::getDatabase()->sql_query('INSERT INTO temp_child_ids (pid, doktype) ' . $q . ';');
 		if ($level !== 0) {
 			$lowerLevel = $level - 1;
 			$q = 'SELECT l' . $level . '.uid, l' . $level . '.doktype
@@ -63,19 +68,20 @@ class Tx_Smoothmigration_Utility_DatabaseUtility implements t3lib_Singleton {
 	 * @param int $limit
 	 * @return array
 	 */
-	public static function getChildPagesArray($pageUid, $limit) {
+	static public function getChildPagesArray($pageUid, $limit) {
 
 		$treeList = array();
 
-		$GLOBALS['TYPO3_DB']->sql_query('DROP TABLE IF EXISTS temp_child_ids;');
-		$GLOBALS['TYPO3_DB']->sql_query('CREATE TEMPORARY TABLE temp_child_ids (pid INT unsigned DEFAULT 0, doktype TINYINT unsigned DEFAULT 0);');
+		$db = static::getDatabase();
+		$db->sql_query('DROP TABLE IF EXISTS temp_child_ids;');
+		$db->sql_query('CREATE TEMPORARY TABLE temp_child_ids (pid INT unsigned DEFAULT 0, doktype TINYINT unsigned DEFAULT 0);');
 
 		$query = 'SELECT l0.uid, l0.doktype FROM pages AS l0 WHERE l0.pid = ' . $pageUid. ' AND l0.deleted = 0 AND l0.hidden = 0';
 
-		self::getChildIds(self::MAX_RECURSION_LEVELS, $query);
-		$res = $GLOBALS['TYPO3_DB']->sql_query('SELECT pid FROM temp_child_ids WHERE NOT doktype IN(3,6,199,254,255) ');
+		static::getChildIds(self::MAX_RECURSION_LEVELS, $query);
+		$res = $db->sql_query('SELECT pid FROM temp_child_ids WHERE NOT doktype IN(3,6,199,254,255) ');
 		$i = 0;
-		while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+		while ($row = $db->sql_fetch_assoc($res)) {
 			$treeList[] = $row['pid'];
 			$i++;
 			if ($i >= $limit) {
@@ -83,9 +89,9 @@ class Tx_Smoothmigration_Utility_DatabaseUtility implements t3lib_Singleton {
 			}
 		}
 
-		$GLOBALS['TYPO3_DB']->sql_free_result($res);
+		$db->sql_free_result($res);
 
-		$GLOBALS['TYPO3_DB']->sql_query('DROP TABLE IF EXISTS temp_child_ids;');
+		$db->sql_query('DROP TABLE IF EXISTS temp_child_ids;');
 
 		return $treeList;
 	}
@@ -98,7 +104,7 @@ class Tx_Smoothmigration_Utility_DatabaseUtility implements t3lib_Singleton {
 	 *
 	 * @return array
 	 */
-	public static function getPagesWithContentElements($contentTypes = array(), $listTypes = array()) {
+	static public function getPagesWithContentElements($contentTypes = array(), $listTypes = array()) {
 		$pages = array();
 
 		$query = '
@@ -127,9 +133,10 @@ class Tx_Smoothmigration_Utility_DatabaseUtility implements t3lib_Singleton {
 			ORDER BY CType, list_type, pageUid, contentUid, title
 		';
 
-		$res = $GLOBALS['TYPO3_DB']->sql_query($query);
+		$typo3db = static::getDatabase();
+		$res = $typo3db->sql_query($query);
 
-		while (($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))) {
+		while (($row = $typo3db->sql_fetch_assoc($res))) {
 			if (is_array($row)) {
 				$pages[] = array(
 					'pageUid' => intval($row['pageUid']),
@@ -141,7 +148,7 @@ class Tx_Smoothmigration_Utility_DatabaseUtility implements t3lib_Singleton {
 			}
 		}
 
-		$GLOBALS['TYPO3_DB']->sql_free_result($res);
+		$typo3db->sql_free_result($res);
 
 		return $pages;
 	}
@@ -151,8 +158,8 @@ class Tx_Smoothmigration_Utility_DatabaseUtility implements t3lib_Singleton {
 	 *
 	 * @return array
 	 */
-	public static function getSiteRoots() {
-		return $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+	static public function getSiteRoots() {
+		return static::getDatabase()->exec_SELECTgetRows(
 			'uid, title',
 			'pages',
 			'is_siteroot = 1 AND deleted = 0 AND hidden = 0 AND pid != -1',
@@ -167,12 +174,19 @@ class Tx_Smoothmigration_Utility_DatabaseUtility implements t3lib_Singleton {
 	 * @param int $pid
 	 * @return array
 	 */
-	public static function getDomainRecords($pid) {
-		return $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+	static public function getDomainRecords($pid) {
+		return static::getDatabase()->exec_SELECTgetRows(
 			'domainName',
 			'sys_domain',
 			'hidden = 0 AND pid = ' . (int) $pid,
 			'', 'sorting'
 		);
+	}
+
+	/**
+	 * @return DatabaseConnection
+	 */
+	static protected function getDatabase() {
+		return $GLOBALS['TYPO3_DB'];
 	}
 }

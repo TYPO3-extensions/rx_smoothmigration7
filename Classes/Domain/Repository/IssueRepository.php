@@ -22,11 +22,18 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+namespace Reelworx\RxSmoothmigration7\Domain\Repository;
+use Reelworx\RxSmoothmigration7\Domain\Model\Issue;
+use Reelworx\RxSmoothmigration7\Checks\AbstractCheckDefinition;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\Migration;
+use TYPO3\CMS\Dbal\Database\DatabaseConnection;
+use TYPO3\CMS\Extbase\Persistence\Repository;
+
 /**
- * An Issue Repository
+ * An Reelworx\RxSmoothmigration7\Domain\Model\Issue Repository
  *
  */
-class Tx_Smoothmigration_Domain_Repository_IssueRepository extends Tx_Extbase_Persistence_Repository {
+class IssueRepository extends Repository {
 
 	/**
 	 * Find all grouped by inspection
@@ -38,11 +45,11 @@ class Tx_Smoothmigration_Domain_Repository_IssueRepository extends Tx_Extbase_Pe
 	public function findAllGroupedByInspection($checks) {
 		$issues = $this->findAll();
 		$groups = array();
-		/** @var Tx_Smoothmigration_Checks_AbstractCheckDefinition $check */
+		/** @var \Reelworx\RxSmoothmigration7\Checks\AbstractCheckDefinition $check */
 		foreach ($checks as $check) {
 			$groups[$check->getIdentifier()] = array();
 		}
-		/** @var Tx_Smoothmigration_Domain_Model_Issue $issue */
+		/** @var \Reelworx\RxSmoothmigration7\Domain\Model\Issue $issue */
 		foreach ($issues as $issue) {
 			if (!array_key_exists($issue->getInspection(), $groups)) {
 				$groups[$issue->getInspection()] = array();
@@ -89,7 +96,7 @@ class Tx_Smoothmigration_Domain_Repository_IssueRepository extends Tx_Extbase_Pe
 			$query->logicalAnd(
 				$query->equals('inspection', $inspection),
 				$query->logicalNot(
-					$query->equals('migrationStatus', Tx_Smoothmigration_Domain_Interface_Migration::SUCCESS)
+					$query->equals('migrationStatus', Migration::SUCCESS)
 				)
 			)
 		)->execute();
@@ -111,7 +118,7 @@ class Tx_Smoothmigration_Domain_Repository_IssueRepository extends Tx_Extbase_Pe
 				$query->equals('inspection', $inspection),
 				$query->equals('extension', $extensionKey),
 				$query->logicalNot(
-					$query->equals('migrationStatus', Tx_Smoothmigration_Domain_Interface_Migration::SUCCESS)
+					$query->equals('migrationStatus', Migration::SUCCESS)
 				)
 			)
 		)->execute();
@@ -125,7 +132,7 @@ class Tx_Smoothmigration_Domain_Repository_IssueRepository extends Tx_Extbase_Pe
 	public function findAllGroupedByExtensionAndInspection() {
 		$issues = $this->findAll();
 		$groups = array();
-		/** @var Tx_Smoothmigration_Domain_Model_Issue $issue */
+		/** @var \Reelworx\RxSmoothmigration7\Domain\Model\Issue $issue */
 		foreach ($issues as $issue) {
 			if (!array_key_exists($issue->getExtension(), $groups)) {
 				$groups[$issue->getExtension()] = array();
@@ -152,7 +159,7 @@ class Tx_Smoothmigration_Domain_Repository_IssueRepository extends Tx_Extbase_Pe
 	public function findByExtensionGroupedByInspection($extensionKey = '') {
 		$issues = $this->findByExtension($extensionKey);
 		$groups = array();
-		/** @var Tx_Smoothmigration_Domain_Model_Issue $issue */
+		/** @var \Reelworx\RxSmoothmigration7\Domain\Model\Issue $issue */
 		foreach ($issues as $issue) {
 			if (!array_key_exists($issue->getExtension(), $groups)) {
 				$groups[$issue->getExtension()] = array();
@@ -172,17 +179,18 @@ class Tx_Smoothmigration_Domain_Repository_IssueRepository extends Tx_Extbase_Pe
 	/**
 	 * Add an issue
 	 *
-	 * @param Tx_Smoothmigration_Domain_Model_Issue $object
+	 * @param \Reelworx\RxSmoothmigration7\Domain\Model\Issue $object
 	 *
 	 * @return void
 	 */
 	public function add($object) {
-		if ($GLOBALS['TYPO3_DB']->exec_SELECTcountRows(
+		$db = $this->getDatabase();
+		if ($db->exec_SELECTcountRows(
 				'*',
-				'tx_smoothmigration_domain_model_issue',
-				'inspection = ' . $GLOBALS['TYPO3_DB']->fullQuoteStr($object->getInspection(), 'tx_smoothmigration_domain_model_issue') .
-				' AND identifier = ' . $GLOBALS['TYPO3_DB']->fullQuoteStr($object->getIdentifier(), 'tx_smoothmigration_domain_model_issue')
-			) == 0
+				'tx_rxsmoothmigration7_issue',
+				'inspection = ' . $db->fullQuoteStr($object->getInspection(), 'tx_rxsmoothmigration7_issue') .
+				' AND identifier = ' . $db->fullQuoteStr($object->getIdentifier(), 'tx_rxsmoothmigration7_issue')
+			) === 0
 		) {
 			parent::add($object);
 		}
@@ -197,23 +205,27 @@ class Tx_Smoothmigration_Domain_Repository_IssueRepository extends Tx_Extbase_Pe
 	 *    on error
 	 */
 	public function deleteAllByInspection($inspection) {
-		$issueCount =
-			$GLOBALS['TYPO3_DB']->exec_SELECTcountRows(
-				'*',
-				'tx_smoothmigration_domain_model_issue',
-				'inspection = ' . $GLOBALS['TYPO3_DB']->fullQuoteStr($inspection, 'tx_smoothmigration_domain_model_issue')
-			);
-		if ($issueCount > 0) {
-			if (!$GLOBALS['TYPO3_DB']->exec_DELETEquery(
-				'tx_smoothmigration_domain_model_issue',
-				'inspection = ' . $GLOBALS['TYPO3_DB']->fullQuoteStr($inspection, 'tx_smoothmigration_domain_model_issue')
-			)
-			) {
-				return -1;
-			}
+		$db = $this->getDatabase();
+		$issueCount = $db->exec_SELECTcountRows(
+			'*',
+			'tx_rxsmoothmigration7_issue',
+			'inspection = ' . $db->fullQuoteStr($inspection, 'tx_rxsmoothmigration7_issue')
+		);
+		if ($issueCount > 0 && !$db->exec_DELETEquery(
+			'tx_rxsmoothmigration7_issue',
+			'inspection = ' . $db->fullQuoteStr($inspection, 'tx_rxsmoothmigration7_issue')
+		)) {
+			return -1;
 		}
 
 		return $issueCount;
+	}
+
+	/**
+	 * @return DatabaseConnection
+	 */
+	protected function getDatabase() {
+		return $GLOBALS['TYPO3_DB'];
 	}
 
 }

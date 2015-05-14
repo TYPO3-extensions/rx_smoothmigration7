@@ -25,17 +25,27 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+namespace Reelworx\RxSmoothmigration7\Controller;
+
+use Reelworx\RxSmoothmigration7\Service\Check\Registry;
+use Reelworx\RxSmoothmigration7\Domain\Repository\IssueRepository;
+use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
+use TYPO3\CMS\Extbase\Mvc\Web\Response;
+
 /**
- * Class Tx_Smoothmigration_Controller_ReportController
+ * Class AjaxController
  */
-class Tx_Smoothmigration_Controller_AjaxController extends Tx_Extbase_MVC_Controller_ActionController {
+class AjaxController extends ActionController {
 
 	/**
-	 * @var Tx_Smoothmigration_Domain_Repository_IssueRepository {
+	 * @var \Reelworx\RxSmoothmigration7\Domain\Repository\IssueRepository
 	 */
 	protected $issueRepository;
 
-	public function injectIssueRepository(Tx_Smoothmigration_Domain_Repository_IssueRepository $issueRepository) {
+	/**
+	 * @param \Reelworx\RxSmoothmigration7\Domain\Repository\IssueRepository $issueRepository
+	 */
+	public function injectIssueRepository(IssueRepository $issueRepository) {
 		$this->issueRepository = $issueRepository;
 	}
 
@@ -46,7 +56,9 @@ class Tx_Smoothmigration_Controller_AjaxController extends Tx_Extbase_MVC_Contro
 	 */
 	protected function initializeAction() {
 		parent::initializeAction();
-		$this->response->setHeader('Content-type', 'application/json; charset=utf-8');
+		if ($this->response instanceof Response) {
+			$this->response->setHeader('Content-type', 'application/json; charset=utf-8');
+		}
 	}
 
 	/**
@@ -55,7 +67,7 @@ class Tx_Smoothmigration_Controller_AjaxController extends Tx_Extbase_MVC_Contro
 	 * @return string
 	 */
 	public function runTestAction($checkIdentifier) {
-		$registry = Tx_Smoothmigration_Service_Check_Registry::getInstance();
+		$registry = Registry::getInstance();
 		$check = $registry->getActiveCheckByIdentifier($checkIdentifier);
 
 		if ($check !== NULL) {
@@ -70,7 +82,9 @@ class Tx_Smoothmigration_Controller_AjaxController extends Tx_Extbase_MVC_Contro
 				'issueCount' => count($processor->getIssues()),
 			));
 		} else {
-			$this->response->setStatus(404, 'Check not found');
+			if ($this->response instanceof Response) {
+				$this->response->setStatus(404, 'Check not found');
+			}
 			return json_encode(array('result' => 'ERROR'));
 		}
 	}
@@ -90,15 +104,10 @@ class Tx_Smoothmigration_Controller_AjaxController extends Tx_Extbase_MVC_Contro
 				'issueCount' => $deletedIssueCount,
 			));
 		} else {
-			$this->response->setStatus(404, 'Check not found');
+			if ($this->response instanceof Response) {
+				$this->response->setStatus(404, 'Check not found');
+			}
 			return json_encode(array('result' => 'ERROR'));
 		}
 	}
 }
-
-
-if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/smoothmigration/Classes/Controller/AjaxController.php'])) {
-	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/smoothmigration/Classes/Controller/AjaxController.php']);
-}
-
-?>

@@ -1,4 +1,10 @@
 <?php
+
+namespace Reelworx\RxSmoothmigration7\ViewHelpers;
+
+use Reelworx\RxSmoothmigration7\Service\Check\Registry;
+use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractConditionViewHelper;
+
 /***************************************************************
  *  Copyright notice
  *
@@ -26,29 +32,17 @@
  ***************************************************************/
 
 
-class Tx_Smoothmigration_ViewHelpers_InspectionViewHelper extends Tx_Fluid_Core_ViewHelper_AbstractViewHelper {
-
-
-	/**
-	 * Initialize arguments
-	 *
-	 * @return void
-	 */
-	public function initializeArguments() {
-		parent::initializeArguments();
-	}
+class InspectionViewHelper extends AbstractConditionViewHelper {
 
 	/**
 	 * @param string $inspectionIdentifier
+	 * @return string
 	 */
 	public function render($inspectionIdentifier) {
-		$check = Tx_Smoothmigration_Service_Check_Registry::getInstance()->getActiveCheckByIdentifier($inspectionIdentifier);
+		$check = Registry::getInstance()->getActiveCheckByIdentifier($inspectionIdentifier);
 		$this->templateVariableContainer->add('inspection', $check);
 		$content = $this->renderChildren();
 		$this->templateVariableContainer->remove('inspection');
 		return $content;
 	}
 }
-
-
-?>

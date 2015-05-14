@@ -20,12 +20,17 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  */
+namespace Reelworx\RxSmoothmigration7\Migrations\MissingAddPluginParameter;
+
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\Migration;
+use Reelworx\RxSmoothmigration7\Domain\Model\Issue;
+use Reelworx\RxSmoothmigration7\Migrations\AbstractMigrationProcessor;
 
 /**
- * Class Tx_Smoothmigration_Migrations_Core_MissingAddPluginParameter_Processor
+ * Class Processor
  *
  */
-class Tx_Smoothmigration_Migrations_Core_MissingAddPluginParameter_Processor extends Tx_Smoothmigration_Migrations_AbstractMigrationProcessor {
+class Processor extends AbstractMigrationProcessor {
 
 	/**
 	 * Class Alias Map
@@ -56,18 +61,18 @@ class Tx_Smoothmigration_Migrations_Core_MissingAddPluginParameter_Processor ext
 			$this->messageService->successMessage('No issues found', TRUE);
 		}
 
-		$persistenceManger = $this->objectManager->get('Tx_Extbase_Persistence_Manager');
+		$persistenceManger = $this->objectManager->get('TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager');
 		$persistenceManger->persistAll();
 	}
 
 	/**
 	 * Handle issue
 	 *
-	 * @param Tx_Smoothmigration_Domain_Model_Issue $issue
+	 * @param Issue $issue
 	 *
 	 * @return void
 	 */
-	protected function handleIssue(Tx_Smoothmigration_Domain_Model_Issue $issue) {
+	protected function handleIssue(Issue $issue) {
 		if (is_string($issue->getLocationInfo())) {
 			$locationInfo = unserialize($issue->getLocationInfo());
 		} else {
@@ -79,19 +84,18 @@ class Tx_Smoothmigration_Migrations_Core_MissingAddPluginParameter_Processor ext
 	/**
 	 * Perform the actual replacement
 	 *
-	 * @param Tx_Smoothmigration_Domain_Model_Issue $issue
+	 * @param Issue $issue
 	 * @param object $locationInfo
 	 *
 	 * @return boolean
 	 */
-	protected function performReplacement(Tx_Smoothmigration_Domain_Model_Issue $issue, $locationInfo) {
+	protected function performReplacement(Issue $issue, $locationInfo) {
 
 		$search = trim($locationInfo->getMatchedString());
 		$replacement = trim($search, ')') . ', \'' . $issue->getExtension() . '\')';
 
-		$this->messageService->message($locationInfo->getFilePath() . ' line: ' . $locationInfo->getLineNumber() . LF .
-		                              'Replacing [' . $search . '] =>' .
-		                              ' [' . $replacement . ']');
+		$this->messageService->message($locationInfo->getFilePath() . ' line: ' . $locationInfo->getLineNumber() . LF
+			. 'Replacing [' . $search . '] =>' . ' [' . $replacement . ']');
 
 		if ($issue->getMigrationStatus() != 0) {
 			$this->messageService->successMessage('already migrated', TRUE);
@@ -100,19 +104,19 @@ class Tx_Smoothmigration_Migrations_Core_MissingAddPluginParameter_Processor ext
 		}
 
 		if (!file_exists($locationInfo->getFilePath())) {
-			$issue->setMigrationStatus(Tx_Smoothmigration_Domain_Interface_Migration::ERROR_FILE_NOT_FOUND);
+			$issue->setMigrationStatus(Migration::ERROR_FILE_NOT_FOUND);
 			$this->messageService->errorMessage('Error, file not found', TRUE);
 
 			return;
 		}
 		if (!is_writable($locationInfo->getFilePath())) {
-			$issue->setMigrationStatus(Tx_Smoothmigration_Domain_Interface_Migration::ERROR_FILE_NOT_WRITABLE);
+			$issue->setMigrationStatus(Migration::ERROR_FILE_NOT_WRITABLE);
 			$this->messageService->errorMessage('Error, file not writable', TRUE);
 
 			return;
 		}
 
-		$fileObject = new SplFileObject($locationInfo->getFilePath());
+		$fileObject = new \SplFileObject($locationInfo->getFilePath());
 		$newFileContent = '';
 
 		foreach ($fileObject as $lineNumber => $lineContent) {
@@ -122,7 +126,7 @@ class Tx_Smoothmigration_Migrations_Core_MissingAddPluginParameter_Processor ext
 			} else {
 				$newLineContent = str_replace($search, $replacement, $lineContent);
 				if (!strstr($newLineContent, $replacement)) {
-					$issue->setMigrationStatus(Tx_Smoothmigration_Domain_Interface_Migration::ERROR_FILE_NOT_CHANGED);
+					$issue->setMigrationStatus(Migration::ERROR_FILE_NOT_CHANGED);
 					$this->messageService->errorMessage($this->ll('migrationsstatus.4'), TRUE);
 
 					return;
@@ -132,8 +136,8 @@ class Tx_Smoothmigration_Migrations_Core_MissingAddPluginParameter_Processor ext
 		}
 
 		file_put_contents($locationInfo->getFilePath(), $newFileContent);
-		$issue->setMigrationStatus(Tx_Smoothmigration_Domain_Interface_Migration::SUCCESS);
-		$this->messageService->successMessage('Succes' . LF, TRUE);
+		$issue->setMigrationStatus(Migration::SUCCESS);
+		$this->messageService->successMessage('Success' . LF, TRUE);
 
 	}
 

@@ -21,26 +21,32 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+namespace Reelworx\RxSmoothmigration7\Migrations\CallToDeprecatedStaticMethods;
+
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\Migration;
+use Reelworx\RxSmoothmigration7\Domain\Model\Issue;
+use Reelworx\RxSmoothmigration7\Domain\Repository\DeprecationRepository;
+use Reelworx\RxSmoothmigration7\Migrations\AbstractMigrationProcessor;
 
 /**
- * Class Tx_Smoothmigration_Migrations_Core_CallToDeprecatedStaticMethods_Processor
+ * Class Processor
  *
  * @author Michiel Roos
  */
-class Tx_Smoothmigration_Migrations_Core_CallToDeprecatedStaticMethods_Processor extends Tx_Smoothmigration_Migrations_AbstractMigrationProcessor {
+class Processor extends AbstractMigrationProcessor {
 
 	/**
-	 * @var Tx_Smoothmigration_Domain_Repository_DeprecationRepository
+	 * @var DeprecationRepository
 	 */
 	protected $deprecationRepository;
 
 	/**
 	 * Inject the deprecation repository
 	 *
-	 * @param Tx_Smoothmigration_Domain_Repository_DeprecationRepository $deprecationRepository
+	 * @param DeprecationRepository $deprecationRepository
 	 * @return void
 	 */
-	public function injectDeprecationRepository(Tx_Smoothmigration_Domain_Repository_DeprecationRepository $deprecationRepository) {
+	public function injectDeprecationRepository(DeprecationRepository $deprecationRepository) {
 		$this->deprecationRepository = $deprecationRepository;
 	}
 
@@ -58,17 +64,17 @@ class Tx_Smoothmigration_Migrations_Core_CallToDeprecatedStaticMethods_Processor
 			$this->messageService->successMessage('No issues found', TRUE);
 		}
 
-		$persistenceManger = $this->objectManager->get('Tx_Extbase_Persistence_Manager');
+		$persistenceManger = $this->objectManager->get('TYPO3\\CMS\\Extbase\\Persistence\\Generic\\PersistenceManager');
 		$persistenceManger->persistAll();
 	}
 
 	/**
 	 * Handle issue
 	 *
-	 * @param Tx_Smoothmigration_Domain_Model_Issue $issue
+	 * @param Issue $issue
 	 * @return void
 	 */
-	protected function handleIssue(Tx_Smoothmigration_Domain_Model_Issue $issue) {
+	protected function handleIssue(Issue $issue) {
 		if (is_string($issue->getLocationInfo())) {
 			$locationInfo = unserialize($issue->getLocationInfo());
 		} else {
@@ -99,8 +105,8 @@ class Tx_Smoothmigration_Migrations_Core_CallToDeprecatedStaticMethods_Processor
 			}
 		} else {
 			$this->messageService->message($locationInfo->getFilePath() . ' line: ' . $locationInfo->getLineNumber() . LF .
-			'Method [' . trim($locationInfo->getMatchedString()) . '] is not easily replaceable.' . LF .
-			$additionalInformation['deprecationMessage']);
+				'Method [' . trim($locationInfo->getMatchedString()) . '] is not easily replaceable.' . LF .
+				$additionalInformation['deprecationMessage']);
 			if ($additionalInformation['replacementMessage']) {
 				$this->messageService->message($additionalInformation['replacementMessage']);
 			}
@@ -111,23 +117,23 @@ class Tx_Smoothmigration_Migrations_Core_CallToDeprecatedStaticMethods_Processor
 
 	/**
 	 *
-	 * @param Tx_Smoothmigration_Domain_Model_Issue $issue
+	 * @param Issue $issue
 	 * @param object $locationInfo
 	 * @param array $additionalInformation
 	 * @return void
 	 */
-	protected function performReplacement(Tx_Smoothmigration_Domain_Model_Issue $issue, $locationInfo, $additionalInformation) {
+	protected function performReplacement(Issue $issue, $locationInfo, $additionalInformation) {
 		$concatenator = '::';
 		if ($additionalInformation['replacementClass'] == '$GLOBALS[\'TYPO3_DB\']') {
 			$concatenator = '->';
 		}
-			// Some replacements are plain PHP functions
+		// Some replacements are plain PHP functions
 		if ($additionalInformation['replacementClass'] == '') {
 			$concatenator = '';
 		}
 		$this->messageService->message($locationInfo->getFilePath() . ' line: ' . $locationInfo->getLineNumber() . LF .
-		'Replacing [' . trim($locationInfo->getMatchedString()) . '] =>' .
-		' [' . $additionalInformation['replacementClass'] . $concatenator . $additionalInformation['replacementMethod'] . '(]');
+			'Replacing [' . trim($locationInfo->getMatchedString()) . '] =>' .
+			' [' . $additionalInformation['replacementClass'] . $concatenator . $additionalInformation['replacementMethod'] . '(]');
 
 		if ($issue->getMigrationStatus() != 0) {
 			$this->messageService->successMessage('already migrated', TRUE);
@@ -135,16 +141,16 @@ class Tx_Smoothmigration_Migrations_Core_CallToDeprecatedStaticMethods_Processor
 		}
 
 		if (!file_exists($locationInfo->getFilePath())) {
-			$issue->setMigrationStatus(Tx_Smoothmigration_Domain_Interface_Migration::ERROR_FILE_NOT_FOUND);
+			$issue->setMigrationStatus(Migration::ERROR_FILE_NOT_FOUND);
 			$this->messageService->errorMessage('Error, file not found', TRUE);
 			return;
 		}
 		if (!is_writable($locationInfo->getFilePath())) {
-			$issue->setMigrationStatus(Tx_Smoothmigration_Domain_Interface_Migration::ERROR_FILE_NOT_WRITABLE);
+			$issue->setMigrationStatus(Migration::ERROR_FILE_NOT_WRITABLE);
 			$this->messageService->errorMessage('Error, file not writable', TRUE);
 			return;
 		}
-		$fileObject = new SplFileObject($locationInfo->getFilePath());
+		$fileObject = new \SplFileObject($locationInfo->getFilePath());
 		$isRegexReplace = !empty($additionalInformation['regexSearch'])
 			&& !empty($additionalInformation['regexReplace']);
 		if ($isRegexReplace) {
@@ -182,14 +188,14 @@ class Tx_Smoothmigration_Migrations_Core_CallToDeprecatedStaticMethods_Processor
 		}
 
 		if ($newContent == $contentToProcess) {
-			$issue->setMigrationStatus(Tx_Smoothmigration_Domain_Interface_Migration::ERROR_FILE_NOT_CHANGED);
+			$issue->setMigrationStatus(Migration::ERROR_FILE_NOT_CHANGED);
 			$this->messageService->errorMessage($this->ll('migrationsstatus.4'), TRUE);
 			return;
 		}
 
 		file_put_contents($locationInfo->getFilePath(), $contentBefore . $newContent . $contentAfter);
-		$issue->setMigrationStatus(Tx_Smoothmigration_Domain_Interface_Migration::SUCCESS);
-		$this->messageService->successMessage('Succes' . LF, TRUE);
+		$issue->setMigrationStatus(Migration::SUCCESS);
+		$this->messageService->successMessage('Success' . LF, TRUE);
 	}
 
 }

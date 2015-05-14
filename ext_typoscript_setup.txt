@@ -1,5 +1,13 @@
-module.tx_smoothmigration {
+module.tx_rxsmoothmigration7 {
 	persistence {
 		storagePid = 0
+		classes {
+			Reelworx\RxSmoothmigration7\Domain\Model\Issue {
+				mapping.tableName = tx_rxsmoothmigration7_issue
+			}
+			Reelworx\RxSmoothmigration7\Domain\Model\Deprecation {
+				mapping.tableName = tx_rxsmoothmigration7_deprecation
+			}
+		}
 	}
 }

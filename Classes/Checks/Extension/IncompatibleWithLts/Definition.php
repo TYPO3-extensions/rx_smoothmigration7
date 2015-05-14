@@ -20,30 +20,34 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  */
+namespace Reelworx\RxSmoothmigration7\Checks\Extension\IncompatibleWithLts;
+
+use Reelworx\RxSmoothmigration7\Checks\AbstractCheckDefinition;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\CheckProcessor;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\CheckResultAnalyzer;
 
 /**
- * Class Tx_Smoothmigration_Checks_Extension_IncompatibleWithLts_Definition
+ * Class Definition
  *
  * Checks for extensions that don't claim to be compatible with the current LTS
  * version in their ext_emconf.php files.
  *
  * @author Michiel Roos
  */
-class Tx_Smoothmigration_Checks_Extension_IncompatibleWithLts_Definition
-	extends Tx_Smoothmigration_Checks_AbstractCheckDefinition {
+class Definition extends AbstractCheckDefinition {
 
 	/**
-	 * @return Tx_Smoothmigration_Domain_Interface_CheckProcessor
+	 * @return CheckProcessor
 	 */
 	public function getProcessor() {
-		return $this->objectManager->get('Tx_Smoothmigration_Checks_Extension_IncompatibleWithLts_Processor', $this);
+		return $this->objectManager->get('Reelworx\\RxSmoothmigration7\\Checks\\Extension\\IncompatibleWithLts\\Processor', $this);
 	}
 
 	/**
-	 * @return Tx_Smoothmigration_Domain_Interface_CheckResultAnalyzer
+	 * @return CheckResultAnalyzer
 	 */
 	public function getResultAnalyzer() {
-		return $this->objectManager->get('Tx_Smoothmigration_Checks_Extension_IncompatibleWithLts_ResultAnalyzer', $this);
+		return $this->objectManager->get('Reelworx\\RxSmoothmigration7\\Checks\\Extension\\IncompatibleWithLts\\ResultAnalyzer', $this);
 	}
 
 	/**

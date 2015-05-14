@@ -22,15 +22,24 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+namespace Reelworx\RxSmoothmigration7\Migrations;
+
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\Migration;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\MigrationProcessor;
+use Reelworx\RxSmoothmigration7\Domain\Repository\IssueRepository;
+use Reelworx\RxSmoothmigration7\Service\MessageService;
+use TYPO3\CMS\Extbase\Object\ObjectManager;
+use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
+
 /**
- * Class Tx_Smoothmigration_Migrations_AbstractMigrationProcessor
+ * Class Reelworx\RxSmoothmigration7\Migrations\AbstractMigrationProcessor
  *
  * @author Peter Beernink
  */
-abstract class Tx_Smoothmigration_Migrations_AbstractMigrationProcessor implements Tx_Smoothmigration_Domain_Interface_MigrationProcessor {
+abstract class AbstractMigrationProcessor implements MigrationProcessor {
 
 	/**
-	 * @var Tx_Smoothmigration_Service_MessageService
+	 * @var MessageService
 	 */
 	protected $messageService;
 
@@ -50,7 +59,7 @@ abstract class Tx_Smoothmigration_Migrations_AbstractMigrationProcessor implemen
 	protected $extensionKey;
 
 	/**
-	 * @var Tx_Smoothmigration_Domain_Repository_IssueRepository
+	 * @var IssueRepository
 	 */
 	protected $issueRepository;
 
@@ -63,49 +72,33 @@ abstract class Tx_Smoothmigration_Migrations_AbstractMigrationProcessor implemen
 
 	/**
 	 *
-	 * @var Tx_Extbase_Object_ObjectManager
+	 * @var ObjectManager
 	 */
 	protected $objectManager;
 
 	/**
-	 * @var Tx_Smoothmigration_Migrations_AbstractMigrationDefinition
+	 * @var \Reelworx\RxSmoothmigration7\Migrations\AbstractMigrationDefinition
 	 */
 	protected $parentMigration;
 
 	/**
-	 * @var Tx_Extbase_Utility_Localization
-	 */
-	protected $translator;
-
-	/**
 	 * Inject the issue repository
 	 *
-	 * @param Tx_Smoothmigration_Domain_Repository_IssueRepository $issueRepository
+	 * @param IssueRepository $issueRepository
 	 * @return void
 	 */
-	public function injectIssueRepository(Tx_Smoothmigration_Domain_Repository_IssueRepository $issueRepository) {
+	public function injectIssueRepository(IssueRepository $issueRepository) {
 		$this->issueRepository = $issueRepository;
 	}
 
 	/**
 	 * Inject the object manager
 	 *
-	 * @param Tx_Extbase_Object_ObjectManager $objectManager
+	 * @param ObjectManager $objectManager
 	 * @return void
 	 */
-	public function injectObjectManager(Tx_Extbase_Object_ObjectManager $objectManager) {
+	public function injectObjectManager(ObjectManager $objectManager) {
 		$this->objectManager = $objectManager;
-	}
-
-	/**
-	 * Injects the Localization Utility
-	 *
-	 * @param Tx_Extbase_Utility_Localization $translator
-	 *        An instance of the Localization Utility
-	 * @return void
-	 */
-	public function injectTranslator(Tx_Extbase_Utility_Localization $translator) {
-		$this->translator = $translator;
 	}
 
 	/**
@@ -132,17 +125,17 @@ abstract class Tx_Smoothmigration_Migrations_AbstractMigrationProcessor implemen
 	/**
 	 * Set the Message Service
 	 *
-	 * @param Tx_Smoothmigration_Service_MessageService $messageService
+	 * @param MessageService $messageService
 	 * @return void
 	 */
-	public function setMessageService(Tx_Smoothmigration_Service_MessageService $messageService) {
+	public function setMessageService(MessageService $messageService) {
 		$this->messageService = $messageService;
 	}
 
 	/**
-	 * @param Tx_Smoothmigration_Domain_Interface_Migration $migration
+	 * @param Migration $migration
 	 */
-	public function __construct(Tx_Smoothmigration_Domain_Interface_Migration $migration) {
+	public function __construct(Migration $migration) {
 		$this->parentMigration = $migration;
 	}
 
@@ -204,6 +197,6 @@ abstract class Tx_Smoothmigration_Migrations_AbstractMigrationProcessor implemen
 	 * @return string
 	 */
 	public function ll($key, $arguments = NULL) {
-		return $this->translator->translate($key, 'smoothmigration', $arguments);
+		return LocalizationUtility::translate($key, 'rx_smoothmigration7', $arguments);
 	}
 }

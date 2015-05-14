@@ -1,4 +1,9 @@
 <?php
+namespace Reelworx\RxSmoothmigration7\ViewHelpers;
+
+use Reelworx\RxSmoothmigration7\Service\Migration\Registry;
+use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractConditionViewHelper;
+
 /***************************************************************
  *  Copyright notice
  *
@@ -28,7 +33,7 @@
 /**
  * Viewhelper to check whether a migration exist
  */
-class Tx_Smoothmigration_ViewHelpers_IfMigrationAvailableViewHelper extends Tx_Fluid_Core_ViewHelper_AbstractConditionViewHelper {
+class IfMigrationAvailableViewHelper extends AbstractConditionViewHelper {
 
 	/**
 	 * Renders a then child when a migration exists for the given inspectionIdentifier
@@ -38,7 +43,7 @@ class Tx_Smoothmigration_ViewHelpers_IfMigrationAvailableViewHelper extends Tx_F
 	 * @return string
 	 */
 	public function render($inspectionIdentifier) {
-		$migration = Tx_Smoothmigration_Service_Migration_Registry::getInstance()->getActiveMigrationByIdentifier($inspectionIdentifier);
+		$migration = Registry::getInstance()->getActiveMigrationByIdentifier($inspectionIdentifier);
 		if ($migration !== NULL) {
 			$content = $this->renderThenChild();
 		} else {
@@ -47,5 +52,3 @@ class Tx_Smoothmigration_ViewHelpers_IfMigrationAvailableViewHelper extends Tx_F
 		return $content;
 	}
 }
-
-?>

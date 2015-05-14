@@ -24,13 +24,18 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+namespace Reelworx\RxSmoothmigration7\Checks\Core\MySql;
+
+use Reelworx\RxSmoothmigration7\Checks\AbstractCheckProcessor;
+use Reelworx\RxSmoothmigration7\Domain\Model\Issue;
+use Reelworx\RxSmoothmigration7\Utility\FileLocatorUtility;
 
 /**
- * Class Tx_Smoothmigration_Checks_Core_Mysql_Definition
+ * Class Reelworx\RxSmoothmigration7\Checks\Core\MySql\Definition
  *
  * @author Peter Beernink
  */
-class Tx_Smoothmigration_Checks_Core_Mysql_Processor extends Tx_Smoothmigration_Checks_AbstractCheckProcessor {
+class Processor extends AbstractCheckProcessor {
 
 	/**
 	 * @return void
@@ -39,19 +44,19 @@ class Tx_Smoothmigration_Checks_Core_Mysql_Processor extends Tx_Smoothmigration_
 		$regularExpression = '/[^>\*#]\s*(mysql_[a-z_]*)\s?\(/';
 
 		if ($this->getExtensionKey()) {
-			$locations = Tx_Smoothmigration_Utility_FileLocatorUtility::searchInExtension(
+			$locations = FileLocatorUtility::searchInExtension(
 				$this->getExtensionKey(),
 				'.*\.(php|inc)$',
 				$regularExpression
 			);
 		} else {
-			$locations = Tx_Smoothmigration_Utility_FileLocatorUtility::searchInExtensions(
+			$locations = FileLocatorUtility::searchInExtensions(
 				'.*\.(php|inc)$',
 				$regularExpression
 			);
 		}
 		foreach ($locations as $location) {
-			$this->issues[] = new Tx_Smoothmigration_Domain_Model_Issue($this->parentCheck->getIdentifier(), $location);
+			$this->issues[] = new Issue($this->parentCheck->getIdentifier(), $location);
 		}
 	}
 

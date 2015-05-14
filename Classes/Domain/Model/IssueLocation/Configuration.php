@@ -24,13 +24,16 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+namespace Reelworx\RxSmoothmigration7\Domain\Model\IssueLocation;
+
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\IssueLocation;
 
 /**
- * Class Tx_Smoothmigration_Domain_Interface_CheckProcessor
+ * Class Reelworx\RxSmoothmigration7\Domain\Interfaces\CheckProcessor
  *
  * @author Steffen Ritter
  */
-class Tx_Smoothmigration_Domain_Model_IssueLocation_Configuration implements Tx_Smoothmigration_Domain_Interface_IssueLocation {
+class Configuration implements IssueLocation {
 
 
 	const TYPE_TCA = 1;
@@ -57,7 +60,7 @@ class Tx_Smoothmigration_Domain_Model_IssueLocation_Configuration implements Tx_
 	protected $currentValue;
 
 	/**
-	 * @var Tx_Smoothmigration_Domain_Model_IssueLocation_PhysicalLocation
+	 * @var PhysicalLocation
 	 */
 	protected $physicalLocation;
 
@@ -68,16 +71,16 @@ class Tx_Smoothmigration_Domain_Model_IssueLocation_Configuration implements Tx_
 	 */
 	public function createIssueIdentifier() {
 		return md5($this->type . '-' . $this->path) .
-			($this->physicalLocation !== NULL ? $this->physicalLocation->createIssueIdentifier() : '');
+		($this->physicalLocation !== NULL ? $this->physicalLocation->createIssueIdentifier() : '');
 	}
 
 	/**
 	 * @param integer $type
 	 * @param string $path
 	 * @param string $currentValue
-	 * @param Tx_Smoothmigration_Domain_Model_IssueLocation_PhysicalLocation $location
+	 * @param PhysicalLocation $location
 	 */
-	public function __construct($type, $path, $currentValue = '', Tx_Smoothmigration_Domain_Model_IssueLocation_PhysicalLocation $location = NULL) {
+	public function __construct($type, $path, $currentValue = '', PhysicalLocation $location = NULL) {
 		$this->type = $type;
 		$this->path = $path;
 		$this->currentValue = $currentValue;
@@ -117,16 +120,16 @@ class Tx_Smoothmigration_Domain_Model_IssueLocation_Configuration implements Tx_
 	}
 
 	/**
-	 * @param \Tx_Smoothmigration_Domain_Model_IssueLocation_PhysicalLocation $physicalLocation
+	 * @param PhysicalLocation $physicalLocation
 	 *
 	 * @return void
 	 */
-	public function setPhysicalLocation(Tx_Smoothmigration_Domain_Model_IssueLocation_PhysicalLocation $physicalLocation) {
+	public function setPhysicalLocation(PhysicalLocation $physicalLocation) {
 		$this->physicalLocation = $physicalLocation;
 	}
 
 	/**
-	 * @return \Tx_Smoothmigration_Domain_Model_IssueLocation_PhysicalLocation
+	 * @return PhysicalLocation
 	 */
 	public function getPhysicalLocation() {
 		return $this->physicalLocation;
@@ -165,4 +168,3 @@ class Tx_Smoothmigration_Domain_Model_IssueLocation_Configuration implements Tx_
 
 }
 
-?>

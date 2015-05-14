@@ -21,12 +21,16 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  */
 
+namespace Reelworx\RxSmoothmigration7\Service;
+
+use TYPO3\CMS\Core\SingletonInterface;
+
 /**
- * Class Tx_Smoothmigration_Service_ClassAliasProvider
+ * Class Reelworx\RxSmoothmigration7\Service\ClassAliasProvider
  *
  * @author Michiel Roos
  */
-class Tx_Smoothmigration_Service_ClassAliasProvider implements t3lib_Singleton {
+class ClassAliasProvider implements SingletonInterface {
 	/**
 	 * Class Alias Map
 	 *
@@ -5444,6 +5448,7 @@ class Tx_Smoothmigration_Service_ClassAliasProvider implements t3lib_Singleton {
 
 	/**
 	 * Get Class Alias Map
+	 *
 	 * @return array
 	 */
 	public function getClassAliasMap() {

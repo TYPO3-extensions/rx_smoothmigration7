@@ -1,32 +1,37 @@
 #
-# Table structure for table 'tx_smoothmigration_domain_model_deprecation'
+# Table structure for table 'tx_rxsmoothmigration7_deprecation'
 #
-DROP TABLE IF EXISTS tx_smoothmigration_domain_model_deprecation;
-CREATE TABLE tx_smoothmigration_domain_model_deprecation (
-	uid int(11) unsigned NOT NULL auto_increment,
-	pid int(11) DEFAULT '0' NOT NULL,
+DROP TABLE IF EXISTS tx_rxsmoothmigration7_deprecation;
+CREATE TABLE tx_rxsmoothmigration7_deprecation (
+  uid int(11) unsigned NOT NULL auto_increment,
+  pid int(11) DEFAULT '0' NOT NULL,
 
-	file mediumtext,
-	class varchar(255) DEFAULT '',
-	interface varchar(255) DEFAULT '',
-	method varchar(255) DEFAULT '',
-	message mediumtext,
-	is_static int(1) unsigned DEFAULT '0' NOT NULL,
-	visibility varchar(10) DEFAULT '',
-	deprecated_since_version varchar(10) DEFAULT '',
-	removed_in_version varchar(10) DEFAULT '',
-	replacement_class varchar(255) DEFAULT '',
-	replacement_interface varchar(255) DEFAULT '',
-	replacement_method varchar(255) DEFAULT '',
-	regex_search varchar(255) DEFAULT '',
-	regex_replace varchar(255) DEFAULT '',
-	no_brainer int(1) unsigned DEFAULT '0' NOT NULL,
-	replacement_message mediumtext,
-	PRIMARY KEY (uid),
-	KEY parent (pid)
+  file mediumtext,
+  class varchar(255) DEFAULT '',
+  interface varchar(255) DEFAULT '',
+  method varchar(255) DEFAULT '',
+  message mediumtext,
+  is_static int(1) unsigned DEFAULT '0' NOT NULL,
+  visibility varchar(10) DEFAULT '',
+
+  deprecated_since_version varchar(10) DEFAULT '',
+  removed_in_version varchar(10) DEFAULT '',
+
+  replacement_class varchar(255) DEFAULT '',
+  replacement_interface varchar(255) DEFAULT '',
+  replacement_method varchar(255) DEFAULT '',
+
+  regex_search varchar(255) DEFAULT '',
+  regex_replace varchar(255) DEFAULT '',
+
+  no_brainer int(1) unsigned DEFAULT '0' NOT NULL,
+  replacement_message mediumtext,
+
+  PRIMARY KEY (uid),
+  KEY parent (pid)
 );
 
--- TODO: new dump with new table structure
+# TODO add dump
 
 #
 # All deprecated functions gleaned from TYPO3 version 4.4 to 6.2

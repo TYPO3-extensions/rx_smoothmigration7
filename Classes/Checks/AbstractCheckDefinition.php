@@ -25,16 +25,24 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+namespace Reelworx\RxSmoothmigration7\Checks;
+
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\Check;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\CheckDescription;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Object\ObjectManager;
+use TYPO3\CMS\Lang\LanguageService;
+
 /**
- * Class Tx_Smoothmigration_Checks_AbstractCheckDefinition
+ * Class Reelworx\RxSmoothmigration7\Checks\AbstractCheckDefinition
  *
  * @author Steffen Ritter
  */
-abstract class Tx_Smoothmigration_Checks_AbstractCheckDefinition implements Tx_Smoothmigration_Domain_Interface_Check {
+abstract class AbstractCheckDefinition implements Check {
 
 	/**
 	 *
-	 * @var Tx_Extbase_Object_ObjectManager
+	 * @var ObjectManager
 	 */
 	protected $objectManager;
 
@@ -42,11 +50,7 @@ abstract class Tx_Smoothmigration_Checks_AbstractCheckDefinition implements Tx_S
 	 * Constructor
 	 */
 	public function __construct() {
-		if (t3lib_div::int_from_ver(TYPO3_version) < 6001000) {
-			$this->objectManager = t3lib_div::makeInstance('Tx_Extbase_Object_ObjectManager');
-		} else {
-			$this->objectManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('\TYPO3\CMS\Extbase\Object\ObjectManager');
-		}
+		$this->objectManager = GeneralUtility::makeInstance('TYPO3\\CMS\\Extbase\\Object\\ObjectManager');
 	}
 
 	/**
@@ -148,7 +152,7 @@ abstract class Tx_Smoothmigration_Checks_AbstractCheckDefinition implements Tx_S
 	 * @return int
 	 */
 	public function getType() {
-		return Tx_Smoothmigration_Domain_Interface_CheckDescription::TYPE_PHP_CODE;
+		return CheckDescription::TYPE_PHP_CODE;
 	}
 
 	/**
@@ -180,7 +184,9 @@ abstract class Tx_Smoothmigration_Checks_AbstractCheckDefinition implements Tx_S
 	protected function getLanguageLabelForCheck($field) {
 		$classParts = explode('_', __CLASS__);
 		$extensionName = strtolower($classParts[1]);
-		return $GLOBALS['LANG']->sL(
+		/** @var LanguageService $lang */
+		$lang = $GLOBALS['LANG'];
+		return $lang->sL(
 			'LLL:EXT:' . $extensionName . '/Resources/Private/Language/locallang.xml:check.' . $this->getIdentifier() . '.' . $field
 		);
 	}
@@ -188,7 +194,7 @@ abstract class Tx_Smoothmigration_Checks_AbstractCheckDefinition implements Tx_S
 	/**
 	 * Get objectManager
 	 *
-	 * @return Tx_Extbase_Object_ObjectManager
+	 * @return ObjectManager
 	 */
 	public function getObjectManager() {
 		return $this->objectManager;

@@ -21,13 +21,19 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+namespace Reelworx\RxSmoothmigration7\Checks;
+
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\Check;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\CheckResultAnalyzer;
+use Reelworx\RxSmoothmigration7\Domain\Model\Issue;
+use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 
 /**
- * Class Tx_Smoothmigration_Checks_AbstractCheckResultAnalyzer
+ * Class Reelworx\RxSmoothmigration7\Checks\AbstractCheckResultAnalyzer
  *
  * @author Michiel Roos
  */
-class Tx_Smoothmigration_Checks_AbstractCheckResultAnalyzer implements Tx_Smoothmigration_Domain_Interface_CheckResultAnalyzer {
+class AbstractCheckResultAnalyzer implements CheckResultAnalyzer {
 
 	/**
 	 * @var object
@@ -35,28 +41,10 @@ class Tx_Smoothmigration_Checks_AbstractCheckResultAnalyzer implements Tx_Smooth
 	protected $parentCheck;
 
 	/**
-	 * @var Tx_Extbase_Utility_Localization
+	 * @param Check $check
 	 */
-	protected $translator;
-
-	/**
-	 * @param Tx_Smoothmigration_Domain_Interface_Check $check
-	 */
-	public function __construct(Tx_Smoothmigration_Domain_Interface_Check $check) {
+	public function __construct(Check $check) {
 		$this->parentCheck = $check;
-		$translator = t3lib_div::makeInstance('Tx_Extbase_Utility_Localization');
-		$this->injectTranslator($translator);
-	}
-
-	/**
-	 * Injects the Localization Utility
-	 *
-	 * @param Tx_Extbase_Utility_Localization $translator
-	 *        An instance of the Localization Utility
-	 * @return void
-	 */
-	public function injectTranslator(Tx_Extbase_Utility_Localization $translator) {
-		$this->translator = $translator;
 	}
 
 	/**
@@ -67,45 +55,43 @@ class Tx_Smoothmigration_Checks_AbstractCheckResultAnalyzer implements Tx_Smooth
 	 * @return string
 	 */
 	public function ll($key, $arguments = NULL) {
-		return $this->translator->translate($key, 'smoothmigration', $arguments);
+		return LocalizationUtility::translate($key, 'rx_smoothmigration7', $arguments);
 	}
 
 	/**
-	 * @param Tx_Smoothmigration_Domain_Model_Issue $issue
+	 * @param Issue $issue
 	 *
 	 * @return string
 	 */
-	public function getSeverity(Tx_Smoothmigration_Domain_Model_Issue $issue) {
+	public function getSeverity(Issue $issue) {
 		return 0;
 	}
 
 	/**
-	 * @param Tx_Smoothmigration_Domain_Model_Issue $issue
+	 * @param Issue $issue
 	 *
 	 * @return string
 	 */
-	public function getExplanation(Tx_Smoothmigration_Domain_Model_Issue $issue) {
+	public function getExplanation(Issue $issue) {
 		return '';
 	}
 
 	/**
-	 * @param Tx_Smoothmigration_Domain_Model_Issue $issue
+	 * @param Issue $issue
 	 *
 	 * @return string
 	 */
-	public function getSolution(Tx_Smoothmigration_Domain_Model_Issue $issue) {
+	public function getSolution(Issue $issue) {
 		return '';
 	}
 
 	/**
-	 * @param Tx_Smoothmigration_Domain_Model_Issue $issue
+	 * @param Issue $issue
 	 *
 	 * @return string
 	 */
-	public function getRawTextForCopyPaste(Tx_Smoothmigration_Domain_Model_Issue $issue) {
+	public function getRawTextForCopyPaste(Issue $issue) {
 		return '';
 	}
 
 }
-
-?>

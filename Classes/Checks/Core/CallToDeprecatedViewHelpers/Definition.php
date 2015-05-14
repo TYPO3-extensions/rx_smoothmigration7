@@ -24,26 +24,31 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+namespace Reelworx\RxSmoothmigration7\Checks\Core\CallToDeprecatedViewHelpers;
+
+use Reelworx\RxSmoothmigration7\Checks\AbstractCheckDefinition;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\CheckProcessor;
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\CheckResultAnalyzer;
 
 /**
- * Class Tx_Smoothmigration_Checks_Core_CallToDeprecatedViewHelpers_Definition
+ * Class Reelworx\RxSmoothmigration7\Checks\Core\CallToDeprecatedViewHelpers\Definition
  *
  * @author Peter Beernink
  */
-class Tx_Smoothmigration_Checks_Core_CallToDeprecatedViewHelpers_Definition extends Tx_Smoothmigration_Checks_AbstractCheckDefinition {
+class Definition extends AbstractCheckDefinition {
 
 	/**
-	 * @return Tx_Smoothmigration_Domain_Interface_CheckProcessor
+	 * @return CheckProcessor
 	 */
 	public function getProcessor() {
-		return $this->objectManager->get('Tx_Smoothmigration_Checks_Core_CallToDeprecatedViewHelpers_Processor', $this);
+		return $this->objectManager->get('Reelworx\\RxSmoothmigration7\\Checks\\Core\\CallToDeprecatedViewHelpers\\Processor', $this);
 	}
 
 	/**
-	 * @return Tx_Smoothmigration_Domain_Interface_CheckResultAnalyzer
+	 * @return CheckResultAnalyzer
 	 */
 	public function getResultAnalyzer() {
-		return $this->objectManager->get('Tx_Smoothmigration_Checks_Core_CallToDeprecatedViewHelpers_ResultAnalyzer', $this);
+		return $this->objectManager->get('Reelworx\\RxSmoothmigration7\\Checks\\Core\\CallToDeprecatedViewHelpers\\ResultAnalyzer', $this);
 	}
 
 	/**

@@ -25,15 +25,22 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+namespace Reelworx\RxSmoothmigration7\Utility;
+
+use Reelworx\RxSmoothmigration7\Domain\Interfaces\IssueLocation;
+use Reelworx\RxSmoothmigration7\Domain\Model\IssueLocation\File;
+use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+
 /**
- * Class Tx_Smoothmigration_Utility_FileLocatorUtility
+ * Class Reelworx\RxSmoothmigration7\Utility\FileLocatorUtility
  */
-class Tx_Smoothmigration_Utility_FileLocatorUtility implements t3lib_Singleton {
+class FileLocatorUtility implements SingletonInterface {
 
 	/**
 	 * Current TYPO3 LTS version
 	 */
-	const CURRENT_LTS_VERSION = '6.2.0';
+	const CURRENT_LTS_VERSION = '7.2.0';
 
 	/**
 	 * @param string $searchPattern
@@ -43,7 +50,7 @@ class Tx_Smoothmigration_Utility_FileLocatorUtility implements t3lib_Singleton {
 	 */
 	public static function findLineNumbersOfStringInPhpFile($searchPattern, $haystackFilePath) {
 		$positions = array();
-		foreach (new SplFileObject($haystackFilePath) as $lineNumber => $lineContent) {
+		foreach (new \SplFileObject($haystackFilePath) as $lineNumber => $lineContent) {
 			$matches = array();
 			if (preg_match('/' . trim($searchPattern, '/') . '/i', $lineContent, $matches)) {
 				$positions[] = array(
@@ -61,12 +68,12 @@ class Tx_Smoothmigration_Utility_FileLocatorUtility implements t3lib_Singleton {
 	 * @param string $searchPattern
 	 * @param array $excludedExtensions
 	 *
-	 * @return Tx_Smoothmigration_Domain_Interface_IssueLocation[]
+	 * @return IssueLocation[]
 	 */
 	public static function searchInExtensions($fileNamePattern, $searchPattern, $excludedExtensions = array()) {
 		$locations = array();
 
-		$loadedExtensions = Tx_Smoothmigration_Utility_ExtensionUtility::getLoadedExtensionsFiltered();
+		$loadedExtensions = ExtensionUtility::getLoadedExtensionsFiltered();
 
 		foreach ($loadedExtensions as $extensionKey) {
 			if (in_array($extensionKey, $excludedExtensions)) {
@@ -83,20 +90,23 @@ class Tx_Smoothmigration_Utility_FileLocatorUtility implements t3lib_Singleton {
 	 * @param string $fileNamePattern
 	 * @param string $searchPattern
 	 *
-	 * @return Tx_Smoothmigration_Domain_Interface_IssueLocation[]
+	 * @return IssueLocation[]
 	 *
 	 */
 	public static function searchInExtension($extensionKey, $fileNamePattern, $searchPattern) {
-		$pathToExtensionFolder = t3lib_extMgm::extPath($extensionKey);
-		$extensionIterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($pathToExtensionFolder));
-		$regularExpressionIterator = new RegexIterator($extensionIterator, '/' . trim($fileNamePattern, '/') . '/');
+		$objectManager = GeneralUtility::makeInstance('TYPO3\\CMS\\Extbase\\Object\\ObjectManager');
+		$packageManager = $objectManager->get('TYPO3\\CMS\\Core\\Package\\PackageManager');
+		$pathToExtensionFolder = $packageManager->getPackage($extensionKey)->getPackagePath();
+
+		$extensionIterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($pathToExtensionFolder));
+		$regularExpressionIterator = new \RegexIterator($extensionIterator, '/' . trim($fileNamePattern, '/') . '/');
 
 		$positions = array();
 		foreach ($regularExpressionIterator as $fileInfo) {
 			$locations = self::findLineNumbersOfStringInPhpFile($searchPattern, $fileInfo->getPathname());
 
 			foreach ($locations as $location) {
-				$positions[] = new Tx_Smoothmigration_Domain_Model_IssueLocation_File($extensionKey, str_replace(PATH_site, '', $fileInfo->getPathname()), $location['line'], $location['match']);
+				$positions[] = new File($extensionKey, str_replace(PATH_site, '', $fileInfo->getPathname()), $location['line'], $location['match']);
 			}
 		}
 
