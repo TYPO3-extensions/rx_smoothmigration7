@@ -1,0 +1,25 @@
+{
+  "name": "reelworx/rx_smoothmigration7",
+  "description": "Smooth migration report for upgrading TYPO3 CMS 6.2 to 7",
+  "version": "1.0.0",
+  "type": "typo3-cms-extension",
+  "license": "GPL-2.0+",
+  "authors": [
+    {
+      "name": "Reelworx GmbH",
+      "role": "Developer",
+      "homepage": "http://reelworx.at/"
+    }
+  ],
+  "replace": {
+    "rx_smoothmigration7": "*"
+  },
+  "require": {
+    "typo3/cms-core": "6.2.14-7.5.99"
+  },
+  "autoload": {
+    "psr-4": {
+      "Reelworx\\RxSmoothmigration7\\": "Classes/"
+    }
+  },
+}
